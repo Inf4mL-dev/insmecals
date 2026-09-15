@@ -6,7 +6,7 @@ mapped onto a plain HTML/CSS/JS site (no build step, no framework):
 
 ```
 insme-frontend/
-├── HomePage.html             # home / hub — lives at project root so it
+├── index.html             # home / hub — lives at project root so it
 │                             # loads at "/" on static hosts
 ├── public/                  # static assets served as-is
 │   ├── images/              # local image assets (logo is currently hosted
@@ -65,11 +65,11 @@ happy to set either up when you're ready.
   calculators (Ahotopii, MomoInsure, Motor, Commission) and merging their
   print/quote templates onto the MomoInsure-style shared template — not done
   in this restructure, still queued as agreed.
-- **Deploying**: `HomePage.html` already sits at the project root. Most
+- **Deploying**: `index.html` already sits at the project root. Most
   static hosts serve whatever file is configured as the index at `/`, so
-  either set your host's index document to `HomePage.html`, or configure a
-  rewrite/redirect from `/` to `/HomePage.html`. The calculator pages still
+  either set your host's index document to `index.html`, or configure a
+  rewrite/redirect from `/` to `/index.html`. The calculator pages still
   live together in `src/pages/` and keep linking to each other with plain
   filenames (`ahotopii.html`, `motor.html`, etc.); `site-nav.js` detects
   which folder the current page is in and builds the right relative path to
-  `HomePage.html` and back automatically.
+  `index.html` and back automatically.

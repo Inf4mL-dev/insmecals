@@ -8,12 +8,12 @@
   first paint, so there's no flash of the wrong theme).
 */
 (function () {
-  // Home (HomePage.html) lives at the project root; every other page lives
+  // Home (index.html) lives at the project root; every other page lives
   // in src/pages/, one directory deeper — so each entry carries both a
   // same-directory path (used when the current page is in src/pages/) and
-  // a from-root path (used when the current page is HomePage.html itself).
+  // a from-root path (used when the current page is index.html itself).
   var PAGES = [
-    { file: 'HomePage.html', label: 'Home', fromPages: '../../HomePage.html', fromRoot: 'HomePage.html' },
+    { file: 'index.html', label: 'Home', fromPages: '../../index.html', fromRoot: 'index.html' },
     { file: 'momoinsure.html', label: 'MoMo Insure', fromPages: 'momoinsure.html', fromRoot: 'src/pages/momoinsure.html' },
     { file: 'motor.html', label: 'Motor', fromPages: 'motor.html', fromRoot: 'src/pages/motor.html' },
     { file: 'ahotopii.html', label: 'Ahotopii', fromPages: 'ahotopii.html', fromRoot: 'src/pages/ahotopii.html' },
@@ -23,7 +23,7 @@
   ];
 
   var inPages = location.pathname.indexOf('/src/pages/') !== -1;
-  var current = (location.pathname.split('/').pop() || 'HomePage.html');
+  var current = (location.pathname.split('/').pop() || 'index.html');
 
   var linksHtml = PAGES.map(function (p) {
     var active = p.file === current ? ' active' : '';
@@ -31,7 +31,7 @@
     return '<a href="' + href + '" class="tab' + active + '">' + p.label + '</a>';
   }).join('');
 
-  var homeHref = inPages ? '../../HomePage.html' : 'HomePage.html';
+  var homeHref = inPages ? '../../index.html' : 'index.html';
 
   var html =
     '<header class="insme-nav">' +
