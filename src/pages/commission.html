@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Insurance | Commission Calculator</title>
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+  :root{
+    /* Local names kept for the rest of this file, aliased to the shared theme */
+    --blue-deep:var(--primary-dark);
+    --blue:var(--primary);
+
+    /* Tints (mixed with white) */
+    --blue-tint-90:color-mix(in srgb, var(--blue) 10%, var(--surface));
+    --blue-tint-80:color-mix(in srgb, var(--blue) 20%, var(--surface));
+    --blue-tint-60:color-mix(in srgb, var(--blue) 40%, var(--surface));
+    --blue-tint-30:color-mix(in srgb, var(--blue) 70%, var(--surface));
+
+    /* Shades (mixed with black) */
+    --blue-shade-20:color-mix(in srgb, var(--blue-deep) 80%, black);
+    --blue-shade-10:color-mix(in srgb, var(--blue-deep) 90%, black);
+
+    --gold:var(--warning);
+
+    --cream:var(--surface);
+    --card:var(--surface-card);
+    --charcoal:var(--ink);
+    --charcoal-soft:var(--ink-soft);
+    --line:color-mix(in srgb, var(--blue) 14%, var(--surface));
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    background:var(--cream);
+    color:var(--charcoal);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+  }
+
+  .app{
+    width:100%;
+    max-width:480px;
+  }
+
+  /* ---------- Header / brand mark ---------- */
+  .brandbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+    padding-bottom:16px;
+    border-bottom:2px solid var(--blue);
+  }
+
+  .mark{
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    object-fit:contain;
+    border-radius:8px;
+    background:var(--surface-card);
+  }
+
+  .wordmark{
+    display:flex;
+    flex-direction:column;
+    line-height:1;
+  }
+
+  .wordmark .name{
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:0.3px;
+    color:var(--blue-shade-20);
+  }
+
+  .wordmark .tag{
+    font-size:10px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--blue);
+    font-weight:600;
+    margin-top:3px;
+  }
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 1px 2px rgba(0,60,120,0.05), 0 12px 32px -12px rgba(0,91,181,0.22);
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+
+  .card-header{
+    background:linear-gradient(135deg,var(--blue-shade-20),var(--blue-deep));
+    padding:22px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .card-header h1{
+    font-family:var(--font-heading);
+    color:#fff;
+    font-size:21px;
+    margin:0;
+    font-weight:600;
+    position:relative;
+    z-index:1;
+  }
+
+  .card-header p{
+    color:var(--blue-tint-80);
+    font-size:12.5px;
+    margin:5px 0 0;
+    position:relative;
+    z-index:1;
+  }
+
+  .horse-flourish{
+    position:absolute;
+    right:-10px;
+    bottom:-14px;
+    width:110px;
+    height:70px;
+    opacity:0.22;
+    z-index:0;
+  }
+
+  .card-body{
+    padding:26px 24px 24px;
+  }
+
+  /* ---------- Form ---------- */
+  .field{
+    margin-bottom:20px;
+  }
+
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--charcoal-soft);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:8px;
+  }
+
+  .premium-input{
+    display:flex;
+    align-items:center;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    transition:border-color 0.15s ease;
+    background:var(--surface-card);
+  }
+
+  .premium-input:focus-within{
+    border-color:var(--blue);
+  }
+
+  .premium-input .prefix{
+    background:var(--blue-tint-90);
+    padding:12px 14px;
+    font-weight:600;
+    color:var(--blue-deep);
+    font-size:14px;
+    border-right:1.5px solid var(--line);
+  }
+
+  .premium-input input{
+    flex:1;
+    border:none;
+    outline:none;
+    padding:12px 14px;
+    font-size:16px;
+    font-family:var(--font-body);
+    color:var(--charcoal);
+    background:transparent;
+    min-width:0;
+  }
+
+  /* ---------- Custom select ---------- */
+  .select-wrap{
+    position:relative;
+  }
+
+  select{
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:12px 40px 12px 14px;
+    font-size:15px;
+    font-family:var(--font-body);
+    color:var(--charcoal);
+    background:var(--surface-card);
+    cursor:pointer;
+    transition:border-color 0.15s ease;
+  }
+
+  select:focus{
+    outline:none;
+    border-color:var(--blue);
+  }
+
+  select.placeholder-active{
+    color:var(--charcoal-soft);
+  }
+
+  .select-wrap::after{
+    content:'';
+    position:absolute;
+    right:16px;
+    top:50%;
+    width:9px;
+    height:9px;
+    border-right:2px solid var(--blue);
+    border-bottom:2px solid var(--blue);
+    transform:translateY(-65%) rotate(45deg);
+    pointer-events:none;
+  }
+
+  .rate-badge{
+    display:inline-block;
+    margin-top:8px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--blue-deep);
+    background:var(--blue-tint-90);
+    padding:4px 10px;
+    border-radius:20px;
+  }
+
+  #motorSubField{
+    display:none;
+    margin-top:14px;
+  }
+
+  .sticker-note{
+    font-size:11.5px;
+    color:var(--charcoal-soft);
+    margin-top:8px;
+    line-height:1.5;
+    display:none;
+  }
+
+  .error-msg{
+    font-size:12.5px;
+    color:var(--blue-deep);
+    margin-top:6px;
+    display:none;
+  }
+
+  .generate-btn{
+    width:100%;
+    background:var(--blue-deep);
+    color:#fff;
+    border:none;
+    padding:15px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+    font-family:var(--font-body);
+    cursor:pointer;
+    margin-top:6px;
+    transition:background 0.15s ease, transform 0.05s ease;
+    letter-spacing:0.3px;
+  }
+
+  .generate-btn:hover{
+    background:var(--blue-shade-10);
+  }
+
+  .generate-btn:active{
+    transform:scale(0.99);
+  }
+
+  /* ---------- Results screen ---------- */
+  #resultScreen{
+    display:none;
+  }
+
+  .result-body{
+    padding:36px 24px 28px;
+    text-align:center;
+  }
+
+  .result-label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:var(--blue);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+
+  .result-amount{
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:44px;
+    color:var(--blue-shade-20);
+    margin:0 0 6px;
+    letter-spacing:-0.5px;
+  }
+
+  .result-currency{
+    font-size:20px;
+    font-weight:600;
+    vertical-align:middle;
+    margin-right:4px;
+    color:var(--blue-deep);
+  }
+
+  .result-sub{
+    font-size:13px;
+    color:var(--charcoal-soft);
+    margin-bottom:18px;
+  }
+
+  /* details / breakdown disclosure */
+  .details-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    justify-content:center;
+    margin:0 auto 20px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--blue-deep);
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .info-dot{
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:var(--blue-tint-80);
+    color:var(--blue-deep);
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+
+  .chevron{
+    width:7px;
+    height:7px;
+    border-right:1.6px solid var(--blue-deep);
+    border-bottom:1.6px solid var(--blue-deep);
+    transform:rotate(45deg);
+    transition:transform 0.15s ease;
+  }
+
+  .details-toggle.open .chevron{
+    transform:rotate(-135deg);
+  }
+
+  .breakdown{
+    text-align:left;
+    background:var(--blue-tint-90);
+    border-radius:10px;
+    padding:0 18px;
+    margin:0 0 0;
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, margin 0.25s ease;
+  }
+
+  .breakdown.open{
+    max-height:320px;
+    opacity:1;
+    padding:16px 18px;
+    margin-bottom:22px;
+  }
+
+  .breakdown-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:6px 0;
+    color:var(--charcoal-soft);
+  }
+
+  .breakdown-row.total{
+    border-top:1px solid var(--line);
+    margin-top:4px;
+    padding-top:10px;
+    font-weight:700;
+    color:var(--blue-shade-20);
+  }
+
+  .breakdown-row span:last-child{
+    font-weight:600;
+    color:var(--charcoal);
+  }
+
+  .breakdown-row.total span:last-child{
+    color:var(--blue-shade-20);
+  }
+
+  .back-btn{
+    width:100%;
+    background:var(--surface-card);
+    color:var(--blue-deep);
+    border:1.5px solid var(--blue-deep);
+    padding:13px;
+    border-radius:10px;
+    font-size:14.5px;
+    font-weight:600;
+    font-family:var(--font-body);
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+
+  .back-btn:hover{
+    background:var(--blue-tint-90);
+  }
+
+  .footer-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--charcoal-soft);
+    margin-top:18px;
+    line-height:1.6;
+  }
+
+  @media (max-width:400px){
+    .result-amount{ font-size:36px; }
+  }
+</style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+<div class="app">
+
+  <div class="brandbar">
+    <img class="mark" src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance__ScaleWidthWzQwMF0.png" alt="Enterprise Insurance logo">
+    <div class="wordmark">
+      <span class="name">Enterprise Insurance</span>
+      <span class="tag">Your Advantage</span>
+    </div>
+  </div>
+
+  <!-- INPUT SCREEN -->
+  <div id="inputScreen" class="card">
+    <div class="card-header">
+      <svg class="horse-flourish" viewBox="0 0 110 70" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 60 C20 35, 35 20, 55 15 C65 12.5, 72 16, 70 20 C68 23.5, 60 22, 57 26 C54 30, 60 32, 65 30 C70 28, 76 32, 72 36 C66 43, 52 40, 46 48 C41 55, 38 62, 33 66" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <h1>Commission Calculator</h1>
+      <p>Enter a premium and policy type to generate the agent commission.</p>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label for="premiumInput">Premium Amount</label>
+        <div class="premium-input">
+          <span class="prefix">GH₵</span>
+          <input type="number" id="premiumInput" placeholder="e.g. 557.00" min="0" step="0.01" inputmode="decimal">
+        </div>
+        <div class="error-msg" id="premiumError">Please enter a valid premium amount greater than 0.</div>
+      </div>
+
+      <div class="field">
+        <label for="policyType">Policy Type</label>
+        <div class="select-wrap">
+          <select id="policyType" class="placeholder-active">
+            <option value="" disabled selected>Select policy type</option>
+            <option value="motor" data-method="motor">Motor</option>
+            <option value="travel" data-rate="0.15" data-method="P.taxed">Travel</option>
+            <option value="pa" data-rate="0.15" data-method="P.taxed">Personal Accident</option>
+            <option value="ahotopii" data-rate="0.15" data-method="no-P.tax">AhotoPii</option>
+            <option value="momoinsure" data-rate="0.15" data-method="no-P.tax">MomoInsure</option>
+            <option value="sme" data-rate="0.15" data-method="P.taxed">SME Insure</option>
+          </select>
+        </div>
+        <div class="error-msg" id="policyError">Please select a policy type.</div>
+      </div>
+
+      <div class="field" id="motorSubField">
+        <label for="motorSubType">Motor Cover</label>
+        <div class="select-wrap">
+          <select id="motorSubType" class="placeholder-active">
+            <option value="" disabled selected>Select cover</option>
+            <option value="motor-tp" data-rate="0.075" data-method="motor">Third Party</option>
+            <option value="motor-comp" data-rate="0.125" data-method="motor">Comprehensive</option>
+          </select>
+        </div>
+        <div class="sticker-note" id="stickerNote">A GH₵79 sticker fee is deducted from the premium before the commission rate is applied.</div>
+        <div class="error-msg" id="motorSubError">Please select a motor cover type.</div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn">Generate Commission</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="resultScreen" class="card">
+    <div class="result-body">
+      <div class="result-label">Commission Due</div>
+      <div class="result-amount"><span class="result-currency">GH₵</span><span id="resultValue">0.00</span></div>
+      <div class="result-sub" id="resultPolicyName">Motor &mdash; Third Party</div>
+
+      <div class="details-toggle" id="detailsToggle">
+        <span class="info-dot">?</span>
+        <span>Details</span>
+        <span class="chevron"></span>
+      </div>
+      <div class="breakdown" id="breakdownBox"></div>
+
+      <button class="back-btn" id="backBtn">Calculate Another</button>
+    </div>
+  </div>
+
+  <div class="footer-note">EIC Informal & SME Market Segment &middot; Internal Agent Tool</div>
+
+</div>
+
+<script>
+  const premiumInput = document.getElementById('premiumInput');
+  const premiumError = document.getElementById('premiumError');
+
+  const policyType = document.getElementById('policyType');
+  const policyError = document.getElementById('policyError');
+
+  const motorSubField = document.getElementById('motorSubField');
+  const motorSubType = document.getElementById('motorSubType');
+  const motorSubError = document.getElementById('motorSubError');
+  const stickerNote = document.getElementById('stickerNote');
+
+  const generateBtn = document.getElementById('generateBtn');
+
+  const inputScreen = document.getElementById('inputScreen');
+  const resultScreen = document.getElementById('resultScreen');
+  const backBtn = document.getElementById('backBtn');
+
+  const detailsToggle = document.getElementById('detailsToggle');
+  const breakdownBox = document.getElementById('breakdownBox');
+
+  const STICKER_FEE = 79;
+  const COMMISSION_TAX_RATE = 0.10;
+  const P_TAX_RATE = 0.20;
+
+  // a) Motor — deduct flat sticker fee from premium, apply rate, then deduct 10% commission tax.
+  function calculateMotor(premium, rate){
+    const stickerFee = STICKER_FEE;
+    const netPremium = premium - stickerFee;
+    const grossCommission = netPremium * rate;
+    const finalCommission = grossCommission * (1 - COMMISSION_TAX_RATE);
+    return { stickerFee, netPremium, grossCommission, finalCommission };
+  }
+
+  // b) no-P.tax — rate applied directly to the full quoted premium, then deduct 10% commission tax.
+  function calculateNoPTax(premium, rate){
+    const grossCommission = premium * rate;
+    const finalCommission = grossCommission * (1 - COMMISSION_TAX_RATE);
+    return { grossCommission, finalCommission };
+  }
+
+  // c) P.taxed — strip the baked-in P.tax portion to recover the base premium, apply rate, then deduct 10% commission tax.
+  function calculatePTaxed(premium, rate){
+    const pTaxShare = P_TAX_RATE / (1 + P_TAX_RATE);
+    const pTaxPortion = premium * pTaxShare;
+    const basePremium = premium - pTaxPortion;
+    const grossCommission = basePremium * rate;
+    const finalCommission = grossCommission * (1 - COMMISSION_TAX_RATE);
+    return { pTaxPortion, basePremium, grossCommission, finalCommission };
+  }
+
+  const policyLabels = {
+    'motor-tp': 'Motor &mdash; Third Party',
+    'motor-comp': 'Motor &mdash; Comprehensive',
+    'travel': 'Travel',
+    'pa': 'Personal Accident',
+    'ahotopii': 'AhotoPii',
+    'momoinsure': 'MomoInsure',
+    'sme': 'SME Insure'
+  };
+
+  function refreshSelectStyle(sel){
+    if (sel.value === '') sel.classList.add('placeholder-active');
+    else sel.classList.remove('placeholder-active');
+  }
+
+  policyType.addEventListener('change', () => {
+    refreshSelectStyle(policyType);
+    policyError.style.display = 'none';
+
+    if (policyType.value === 'motor'){
+      motorSubField.style.display = 'block';
+      stickerNote.style.display = 'block';
+    } else {
+      motorSubField.style.display = 'none';
+      stickerNote.style.display = 'none';
+      motorSubType.value = '';
+      refreshSelectStyle(motorSubType);
+      motorSubError.style.display = 'none';
+    }
+  });
+
+  motorSubType.addEventListener('change', () => {
+    refreshSelectStyle(motorSubType);
+    motorSubError.style.display = 'none';
+  });
+
+  function formatGHC(num){
+    return num.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  generateBtn.addEventListener('click', () => {
+    const premium = parseFloat(premiumInput.value);
+    let valid = true;
+
+    if (isNaN(premium) || premium <= 0){
+      premiumError.style.display = 'block';
+      valid = false;
+    } else {
+      premiumError.style.display = 'none';
+    }
+
+    if (!policyType.value){
+      policyError.style.display = 'block';
+      valid = false;
+    } else {
+      policyError.style.display = 'none';
+    }
+
+    let effectiveType = policyType.value;
+    let rate = null;
+    let method = null;
+
+    if (policyType.value === 'motor'){
+      if (!motorSubType.value){
+        motorSubError.style.display = 'block';
+        valid = false;
+      } else {
+        motorSubError.style.display = 'none';
+        effectiveType = motorSubType.value;
+        rate = parseFloat(motorSubType.selectedOptions[0].dataset.rate);
+        method = motorSubType.selectedOptions[0].dataset.method;
+      }
+    } else if (policyType.value){
+      rate = parseFloat(policyType.selectedOptions[0].dataset.rate);
+      method = policyType.selectedOptions[0].dataset.method;
+    }
+
+    if (!valid) return;
+
+    let result;
+    if (method === 'motor'){
+      result = calculateMotor(premium, rate);
+    } else if (method === 'no-P.tax'){
+      result = calculateNoPTax(premium, rate);
+    } else if (method === 'P.taxed'){
+      result = calculatePTaxed(premium, rate);
+    }
+
+    const { grossCommission, finalCommission } = result;
+
+    document.getElementById('resultValue').textContent = formatGHC(finalCommission);
+    document.getElementById('resultPolicyName').innerHTML = policyLabels[effectiveType];
+
+    let rows = '';
+    rows += `<div class="breakdown-row"><span>Premium</span><span>GH₵${formatGHC(premium)}</span></div>`;
+    if (method === 'motor'){
+      rows += `<div class="breakdown-row"><span>Sticker fee</span><span>&minus; GH₵${formatGHC(result.stickerFee)}</span></div>`;
+      rows += `<div class="breakdown-row"><span>Net premium</span><span>GH₵${formatGHC(result.netPremium)}</span></div>`;
+    } else if (method === 'P.taxed'){
+      rows += `<div class="breakdown-row"><span>P.tax (20%)</span><span>&minus; GH₵${formatGHC(result.pTaxPortion)}</span></div>`;
+      rows += `<div class="breakdown-row"><span>Base premium</span><span>GH₵${formatGHC(result.basePremium)}</span></div>`;
+    }
+    rows += `<div class="breakdown-row"><span>Commission rate</span><span>${(rate*100).toFixed(1)}%</span></div>`;
+    rows += `<div class="breakdown-row"><span>Gross commission</span><span>GH₵${formatGHC(grossCommission)}</span></div>`;
+    rows += `<div class="breakdown-row"><span>Less 10% tax</span><span>&minus; GH₵${formatGHC(grossCommission - finalCommission)}</span></div>`;
+    rows += `<div class="breakdown-row total"><span>Final commission</span><span>GH₵${formatGHC(finalCommission)}</span></div>`;
+
+    breakdownBox.innerHTML = rows;
+    breakdownBox.classList.remove('open');
+    detailsToggle.classList.remove('open');
+
+    inputScreen.style.display = 'none';
+    resultScreen.style.display = 'block';
+  });
+
+  detailsToggle.addEventListener('click', () => {
+    breakdownBox.classList.toggle('open');
+    detailsToggle.classList.toggle('open');
+  });
+
+  backBtn.addEventListener('click', () => {
+    resultScreen.style.display = 'none';
+    inputScreen.style.display = 'block';
+  });
+
+  premiumInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') generateBtn.click();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahoto Pii Premium Calculator — Enterprise Insurance</title>
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+  :root{
+    /* Local names kept for the rest of this file, aliased to the shared theme.
+       (--ink, --line and --shadow already come from shared.css and are not
+       redeclared here to avoid circular custom-property references.) */
+    --navy:var(--primary-dark);
+    --paper:var(--surface);
+    --card:var(--surface-card);
+    --ember:var(--accent);
+    --ember-dark:var(--accent-dark);
+    --gold:var(--warning);
+    --muted:var(--ink-soft);
+    --low:var(--success);
+    --med:var(--warning);
+    --high:var(--danger);
+    --field-bg:var(--surface-soft);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 0 64px;}
+  ::selection{background:var(--ember);color:#fff;}
+
+  /* Masthead */
+  .masthead{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 24px;border-bottom:1px solid var(--line);
+    background:var(--navy);color:#EFE9DA;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:9px;
+    background:linear-gradient(155deg,var(--ember),var(--ember-dark));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-heading);font-weight:700;color:#fff;font-size:18px;
+    flex-shrink:0;
+  }
+  .brand-text .tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#B9AE94;font-weight:600;}
+  .brand-text .name{font-family:var(--font-heading);font-size:17px;font-weight:600;letter-spacing:.01em;}
+  .segment{font-size:11px;color:#B9AE94;text-align:right;line-height:1.4;max-width:150px;}
+
+  /* Shared card */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    margin:28px 24px 0;
+    overflow:hidden;
+  }
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* Landing */
+  .landing{padding:44px 30px 38px;text-align:center;}
+  .landing-icon{
+    width:64px;height:64px;margin:0 auto 20px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, #E8896A, var(--ember) 60%, var(--ember-dark));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 24px -10px rgba(193,84,30,.55);
+  }
+  .landing-icon svg{width:30px;height:30px;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ember-dark);font-weight:700;margin-bottom:10px;}
+  .landing h1{font-family:var(--font-heading);font-size:29px;line-height:1.18;margin:0 0 14px;font-weight:600;}
+  .landing p{color:var(--muted);font-size:15px;line-height:1.6;margin:0 auto 30px;max-width:420px;}
+  .cover-chips{display:flex;gap:10px;justify-content:center;margin-bottom:32px;flex-wrap:wrap;}
+  .chip{font-size:12px;font-weight:600;padding:7px 13px;border-radius:100px;border:1px solid var(--line);color:var(--navy);background:var(--field-bg);}
+  .btn{
+    appearance:none;border:none;cursor:pointer;
+    font-family:var(--font-ui);font-weight:600;font-size:14.5px;
+    padding:14px 26px;border-radius:10px;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn-primary{background:var(--ember);color:#fff;box-shadow:0 8px 18px -8px rgba(193,84,30,.55);}
+  .btn-primary:hover{background:var(--ember-dark);transform:translateY(-1px);}
+  .btn-primary:active{transform:translateY(0);}
+  .btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--field-bg);}
+  .btn-block{width:100%;}
+
+  /* Input view */
+  .view-head{padding:26px 28px 6px;}
+  .view-head .kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px;}
+  .view-head h2{font-family:var(--font-heading);font-size:22px;margin:0;font-weight:600;}
+  .view-body{padding:8px 28px 28px;}
+
+  .field{margin-top:22px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .input-row{
+    display:flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;
+    background:var(--field-bg);transition:border-color .12s ease, background .12s ease;
+  }
+  .input-row:focus-within{border-color:var(--ember);background:var(--surface-card);}
+  .input-row .prefix{
+    padding:0 12px;font-size:14px;font-weight:600;color:var(--muted);
+    border-right:1px solid var(--line);align-self:stretch;display:flex;align-items:center;
+    font-family:var(--font-mono);
+  }
+  .input-row input{
+    flex:1;border:none;background:transparent;padding:13px 14px;
+    font-size:16px;font-family:var(--font-mono);color:var(--ink);outline:none;
+    min-width:0;
+  }
+  select{
+    width:100%;border:1.5px solid var(--line);border-radius:10px;background:var(--field-bg);
+    padding:13px 14px;font-size:15px;font-family:var(--font-ui);color:var(--ink);
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' stroke='%236B6357' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center;
+    cursor:pointer;
+  }
+  select:focus{border-color:var(--ember);background-color:var(--surface-card);outline:none;}
+
+  .rate-preview{
+    display:flex;gap:10px;margin-top:12px;
+  }
+  .rate-pill{
+    flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:var(--field-bg);text-align:center;
+  }
+  .rate-pill .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+  .rate-pill .v{font-family:var(--font-mono);font-size:14px;font-weight:600;margin-top:3px;color:var(--navy);}
+
+  .banner{
+    display:none;margin-top:18px;padding:11px 14px;border-radius:9px;
+    font-size:13px;font-weight:500;border:1px solid transparent;
+  }
+  .banner.show{display:block;}
+  .banner.error{background:#FBEAE3;border-color:#EBC2AC;color:#93361A;}
+
+  .view-actions{display:flex;gap:10px;padding:22px 28px 30px;border-top:1px solid var(--line);}
+
+  /* Output view */
+  .result-hero{
+    background:linear-gradient(160deg,var(--navy),#0A1F20);
+    color:#F1ECDF;padding:34px 28px 28px;text-align:center;
+  }
+  .result-hero .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#B9AE94;font-weight:700;}
+  .result-hero .amount{font-family:var(--font-heading);font-size:42px;font-weight:600;margin:8px 0 4px;}
+  .result-hero .sub{font-size:12.5px;color:#B9AE94;}
+  .risk-badge{
+    display:inline-block;margin-top:14px;font-size:11.5px;font-weight:700;letter-spacing:.03em;
+    padding:5px 12px;border-radius:100px;background:rgba(255,255,255,.1);color:#F1ECDF;
+    border:1px solid rgba(255,255,255,.18);
+  }
+
+  .cover-lines{padding:22px 28px 4px;}
+  .cover-line{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:14px 0;border-bottom:1px solid var(--line);
+  }
+  .cover-line:last-child{border-bottom:none;}
+  .cover-line .name{font-weight:600;font-size:14.5px;color:var(--navy);}
+  .cover-line .si{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--font-mono);}
+  .cover-line .amt{font-family:var(--font-mono);font-weight:600;font-size:15px;text-align:right;}
+
+  .meta-row{
+    display:flex;justify-content:space-between;padding:14px 28px;
+    border-top:1px dashed var(--line);font-size:13px;color:var(--muted);
+  }
+  .meta-row .v{color:var(--ink);font-weight:600;}
+
+  .min-note{
+    margin:0 28px 22px;padding:10px 14px;border-radius:9px;background:#FBF6E7;
+    border:1px solid #E8D9A0;font-size:12.5px;color:#7A5E12;display:none;
+  }
+  .min-note.show{display:block;}
+
+  /* Modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(18,38,31,.5);
+    align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--surface-card);border-radius:16px;max-width:420px;width:100%;padding:26px 24px;
+    box-shadow:0 20px 60px -12px rgba(0,0,0,.35);
+  }
+  .modal h3{font-family:var(--font-heading);font-size:19px;margin:0 0 4px;font-weight:600;}
+  .modal .desc{font-size:13px;color:var(--muted);margin:0 0 18px;}
+  .modal .field{margin-top:14px;}
+  .modal-actions{display:flex;gap:10px;margin-top:22px;}
+
+  /* Print area */
+  #print-area{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{display:block;position:absolute;top:0;left:0;width:100%;padding:0;}
+  }
+  .q-page{padding:36px 34px;font-family:var(--font-ui);color:#1A1A1A;}
+  .q-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--navy);padding-bottom:16px;}
+  .q-org{font-family:var(--font-heading);font-weight:700;font-size:19px;color:var(--navy);}
+  .q-seg{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .q-header-right{text-align:right;font-size:11.5px;color:var(--muted);line-height:1.6;}
+  .q-title{font-family:var(--font-heading);font-size:16px;font-weight:600;margin:22px 0 4px;}
+  .q-meta{font-size:12px;color:var(--muted);margin-bottom:18px;}
+  .q-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--ember-dark);margin:22px 0 10px;}
+  .q-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;font-size:13px;}
+  .q-grid b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:2px;}
+  table.q-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;}
+  table.q-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);padding:8px 6px;}
+  table.q-table td{padding:10px 6px;border-bottom:1px solid var(--line);}
+  table.q-table td:nth-child(2),table.q-table td:nth-child(3),table.q-table th:nth-child(2),table.q-table th:nth-child(3){text-align:right;font-family:var(--font-mono);}
+  tr.q-total td{font-weight:700;border-top:2px solid var(--navy);border-bottom:none;}
+  .q-notes{font-size:12px;color:#333;line-height:1.8;margin:0;padding-left:18px;}
+  .q-subj{font-size:11.5px;color:var(--muted);margin-top:18px;line-height:1.6;padding:12px 14px;background:#F6F2E9;border-radius:8px;}
+  .q-footer{margin-top:26px;font-size:10.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line);padding-top:12px;}
+
+  @media (max-width:480px){
+    .amount{font-size:34px;}
+    .card{margin:20px 14px 0;}
+    .masthead{padding:18px 16px;}
+    .view-body,.view-head,.view-actions{padding-left:20px;padding-right:20px;}
+  }
+</style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+
+<div class="masthead">
+  <div class="brand">
+    <div class="brand-mark">E</div>
+    <div class="brand-text">
+      <div class="tag">Enterprise Insurance</div>
+      <div class="name">Ahoto Pii</div>
+    </div>
+  </div>
+  <div class="segment">Informal &amp; SME<br>Market Segment</div>
+</div>
+
+<div class="wrap">
+
+  <!-- LANDING -->
+  <div id="landing-view" class="view active">
+    <div class="card landing">
+      <div class="landing-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2c1 3-2 4-2 7a3 3 0 106 0c1.5 1 2.5 3 2.5 5a6.5 6.5 0 11-13 0C5.5 9 8 6 8 3.5c1.2 1.5 2 2 4-1.5z" fill="#fff"/></svg>
+      </div>
+      <div class="eyebrow">Fire &amp; Allied Perils · Burglary</div>
+      <h1>Ahoto Pii Premium Calculator</h1>
+      <p>Protect your shop, stock, and equipment. Enter a sum insured for each cover and get an instant Fire &amp; Allied Perils and Burglary premium — cover you can quote and print in minutes.</p>
+      <div class="cover-chips">
+        <div class="chip">Fire &amp; Allied Perils</div>
+        <div class="chip">Burglary</div>
+      </div>
+      <button class="btn btn-primary" onclick="goTo('input-view')">Get a Quote</button>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div id="input-view" class="view">
+    <div class="card">
+      <div class="view-head">
+        <div class="kicker">Step 1 of 2</div>
+        <h2>Tell us about the risk</h2>
+      </div>
+      <div class="view-body">
+
+        <div class="field">
+          <label for="sumInsuredFire">Sum Insured — Fire &amp; Allied Perils</label>
+          <div class="input-row">
+            <span class="prefix">GHS</span>
+            <input id="sumInsuredFire" type="text" inputmode="decimal" placeholder="50,000" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sumInsuredBurglary">Sum Insured — Burglary</label>
+          <div class="input-row">
+            <span class="prefix">GHS</span>
+            <input id="sumInsuredBurglary" type="text" inputmode="decimal" placeholder="50,000" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="riskCategory">Risk Category</label>
+          <select id="riskCategory" onchange="updateRatePreview()">
+            <option value="" disabled selected>Select a risk category</option>
+            <option value="high">High Risk</option>
+            <option value="medium">Medium Risk</option>
+            <option value="low">Low Risk</option>
+          </select>
+          <div class="rate-preview" id="ratePreview" style="display:none;">
+            <div class="rate-pill"><div class="k">Fire Rate</div><div class="v" id="previewFireRate">—</div></div>
+            <div class="rate-pill"><div class="k">Burglary Rate</div><div class="v" id="previewBurglaryRate">—</div></div>
+          </div>
+        </div>
+
+        <div id="input-banner" class="banner error"></div>
+      </div>
+      <div class="view-actions">
+        <button class="btn btn-ghost" onclick="goTo('landing-view')">← Back</button>
+        <button class="btn btn-primary btn-block" onclick="calculate()">Generate Premium</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="output-view" class="view">
+    <div class="card">
+      <div class="result-hero">
+        <div class="label">Full Premium Payable</div>
+        <div class="amount">GHS <span id="fullPremium">0.00</span></div>
+        <div class="sub">Cover Period: 1 Year</div>
+        <div class="risk-badge" id="riskBadge">—</div>
+      </div>
+
+      <div class="cover-lines">
+        <div class="cover-line">
+          <div>
+            <div class="name">Fire &amp; Allied Perils</div>
+            <div class="si">Sum Insured: GHS <span id="siFire">0.00</span></div>
+          </div>
+          <div class="amt" id="firePremium">GHS 0.00</div>
+        </div>
+        <div class="cover-line">
+          <div>
+            <div class="name">Burglary</div>
+            <div class="si">Sum Insured: GHS <span id="siBurglary">0.00</span></div>
+          </div>
+          <div class="amt" id="burglaryPremium">GHS 0.00</div>
+        </div>
+      </div>
+
+      <div class="min-note" id="minNote">Calculated premium was below the GHS 150 minimum, so the GHS 150 minimum premium has been applied.</div>
+
+      <div class="meta-row"><span>Risk Category</span><span class="v" id="metaRisk">—</span></div>
+      <div class="meta-row"><span>Cover Period</span><span class="v">1 Year</span></div>
+
+      <div class="view-actions">
+        <button class="btn btn-ghost" onclick="goTo('input-view')">← Back to Calculator</button>
+        <button class="btn btn-primary btn-block" onclick="openModal()">Print Quote</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>A few details for the quote</h3>
+    <p class="desc">These appear on the printed Ahoto Pii quotation.</p>
+
+    <div class="field">
+      <label for="mName">Insured Name</label>
+      <div class="input-row"><input id="mName" type="text" placeholder="e.g. Adjoa Mensah Enterprise"></div>
+    </div>
+    <div class="field">
+      <label for="mContact">Contact</label>
+      <div class="input-row"><input id="mContact" type="text" placeholder="0XX XXX XXXX"></div>
+      <div class="hint">10-digit Ghanaian number, starting with 0</div>
+    </div>
+    <div class="field">
+      <label for="mLocation">Business Location</label>
+      <div class="input-row"><input id="mLocation" type="text" placeholder="e.g. Kaneshie Market, Accra"></div>
+    </div>
+    <div class="field">
+      <label for="mCode">Agent / Intermediary Code</label>
+      <div class="input-row"><input id="mCode" type="text" placeholder="Optional"></div>
+    </div>
+
+    <div id="modal-banner" class="banner error"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1.4" onclick="generateAndPrint()">Generate &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area">
+  <div class="q-page">
+    <div class="q-header">
+      <div>
+        <div class="q-org">Enterprise Insurance</div>
+        <div class="q-seg">Informal &amp; SME Market Segment</div>
+      </div>
+      <div class="q-header-right">
+        <div id="qReference">Reference: —</div>
+        <div>No. 47 Patrice Lumumba Street,</div>
+        <div>Airport Residential Area, Accra</div>
+        <div>+233 24 798 4909</div>
+        <div>eicinformalmarket@gmail.com</div>
+      </div>
+    </div>
+
+    <div class="q-title">Ahoto Pii — Fire &amp; Burglary Premium Quotation</div>
+    <div class="q-meta" id="qMeta"></div>
+
+    <div class="q-section-title">Insured Details</div>
+    <div class="q-grid">
+      <div><b>Insured Name</b><span id="qName"></span></div>
+      <div><b>Contact</b><span id="qContact"></span></div>
+      <div><b>Business Location</b><span id="qLocation"></span></div>
+      <div><b>Agent's Code</b><span id="qCode"></span></div>
+    </div>
+
+    <div class="q-section-title">Cover Summary</div>
+    <table class="q-table">
+      <thead><tr><th>Section</th><th>Sum Insured (GHS)</th><th>Premium (GHS)</th></tr></thead>
+      <tbody>
+        <tr><td>Fire &amp; Allied Perils</td><td id="qSiFire"></td><td id="qPremFire"></td></tr>
+        <tr><td>Burglary</td><td id="qSiBurglary"></td><td id="qPremBurglary"></td></tr>
+        <tr class="q-total"><td>Full Premium — Cover Period 1 Year</td><td></td><td id="qTotal"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="q-section-title">Key Exclusions &amp; General Conditions</div>
+    <ul class="q-notes">
+      <li>This quotation covers Fire &amp; Allied Perils and Burglary only.</li>
+      <li>No blended rate is applied — each cover is rated and charged separately.</li>
+      <li>Excludes war, terrorism, riot, and civil commotion unless separately agreed.</li>
+      <li>Excludes VAT, NHIL, GETFund Levy, and other statutory charges.</li>
+      <li>Ghana Card required at onboarding.</li>
+      <li>Claims require a police report where applicable.</li>
+    </ul>
+
+    <div class="q-subj">
+      <b>Subjectivities.</b> This quotation is valid for 30 days from the date of issue. Coverage will commence upon receipt of full premium payment. Final premium may vary based on physical risk survey. This quote is subject to our standard policy wording and is not a policy document.
+    </div>
+
+    <div class="q-footer">Generated by Ahoto Pii · Enterprise Insurance · This is a quotation, not a policy document.</div>
+  </div>
+</div>
+
+<script>
+  const RATES = {
+    high:   { fire: 0.0067, burglary: 0.0100, label: 'High Risk' },
+    medium: { fire: 0.0045, burglary: 0.0075, label: 'Medium Risk' },
+    low:    { fire: 0.0030, burglary: 0.0050, label: 'Low Risk' }
+  };
+  const MIN_PREMIUM = 150;
+  let lastResult = null;
+
+  function fmt(n){
+    return n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function pct(r){ return (r*100).toFixed(2).replace(/\.00$/,'') + '%'; }
+
+  function goTo(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function updateRatePreview(){
+    const key = document.getElementById('riskCategory').value;
+    const preview = document.getElementById('ratePreview');
+    if(!key){ preview.style.display='none'; return; }
+    const r = RATES[key];
+    document.getElementById('previewFireRate').textContent = pct(r.fire);
+    document.getElementById('previewBurglaryRate').textContent = pct(r.burglary);
+    preview.style.display='flex';
+  }
+
+  function showInputError(msg){
+    const b = document.getElementById('input-banner');
+    b.textContent = msg;
+    b.classList.add('show');
+  }
+  function clearInputError(){
+    const b = document.getElementById('input-banner');
+    b.classList.remove('show');
+    b.textContent='';
+  }
+
+  function calculate(){
+    clearInputError();
+    const rawSIFire = document.getElementById('sumInsuredFire').value.replace(/,/g,'').trim();
+    const rawSIBurglary = document.getElementById('sumInsuredBurglary').value.replace(/,/g,'').trim();
+    const riskKey = document.getElementById('riskCategory').value;
+    const sumInsuredFire = parseFloat(rawSIFire);
+    const sumInsuredBurglary = parseFloat(rawSIBurglary);
+
+    if(rawSIFire === '' || isNaN(sumInsuredFire)){
+      showInputError('Please enter a valid Sum Insured amount for Fire & Allied Perils.');
+      return;
+    }
+    if(sumInsuredFire <= 0){
+      showInputError('Sum Insured for Fire & Allied Perils must be a positive number greater than zero.');
+      return;
+    }
+    if(rawSIBurglary === '' || isNaN(sumInsuredBurglary)){
+      showInputError('Please enter a valid Sum Insured amount for Burglary.');
+      return;
+    }
+    if(sumInsuredBurglary <= 0){
+      showInputError('Sum Insured for Burglary must be a positive number greater than zero.');
+      return;
+    }
+    if(!riskKey){
+      showInputError('Please select a risk category.');
+      return;
+    }
+
+    const r = RATES[riskKey];
+    const firePremium = sumInsuredFire * r.fire;
+    const burglaryPremium = sumInsuredBurglary * r.burglary;
+    let fullPremium = firePremium + burglaryPremium;
+    const minApplied = fullPremium < MIN_PREMIUM;
+    if(minApplied) fullPremium = MIN_PREMIUM;
+
+    lastResult = {
+      sumInsuredFire, sumInsuredBurglary, riskKey, riskLabel: r.label,
+      fireRate: r.fire, burglaryRate: r.burglary,
+      firePremium, burglaryPremium, fullPremium, minApplied
+    };
+
+    document.getElementById('siFire').textContent = fmt(sumInsuredFire);
+    document.getElementById('siBurglary').textContent = fmt(sumInsuredBurglary);
+    document.getElementById('firePremium').textContent = 'GHS ' + fmt(firePremium);
+    document.getElementById('burglaryPremium').textContent = 'GHS ' + fmt(burglaryPremium);
+    document.getElementById('fullPremium').textContent = fmt(fullPremium);
+    document.getElementById('riskBadge').textContent = r.label;
+    document.getElementById('metaRisk').textContent = r.label;
+    document.getElementById('minNote').classList.toggle('show', minApplied);
+
+    goTo('output-view');
+  }
+
+  function openModal(){
+    document.getElementById('modal-overlay').classList.add('show');
+  }
+  function closeModal(){
+    document.getElementById('modal-overlay').classList.remove('show');
+    document.getElementById('modal-banner').classList.remove('show');
+  }
+
+  function generateAndPrint(){
+    const name = document.getElementById('mName').value.trim();
+    const contact = document.getElementById('mContact').value.trim();
+    const location = document.getElementById('mLocation').value.trim();
+    const code = document.getElementById('mCode').value.trim();
+
+    if(!name || !contact || !location){
+      const b = document.getElementById('modal-banner');
+      b.textContent = 'Please fill in Insured Name, Contact, and Business Location.';
+      b.classList.add('show');
+      return;
+    }
+
+    const ref = 'AP-' + Date.now().toString().slice(-8);
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+    document.getElementById('qReference').textContent = 'Reference: ' + ref;
+    document.getElementById('qMeta').textContent = 'Issue Date: ' + dateStr;
+    document.getElementById('qName').textContent = name;
+    document.getElementById('qContact').textContent = contact;
+    document.getElementById('qLocation').textContent = location;
+    document.getElementById('qCode').textContent = code || '—';
+
+    document.getElementById('qSiFire').textContent = fmt(lastResult.sumInsuredFire);
+    document.getElementById('qSiBurglary').textContent = fmt(lastResult.sumInsuredBurglary);
+    document.getElementById('qPremFire').textContent = fmt(lastResult.firePremium);
+    document.getElementById('qPremBurglary').textContent = fmt(lastResult.burglaryPremium);
+    document.getElementById('qTotal').textContent = fmt(lastResult.fullPremium);
+
+    closeModal();
+    setTimeout(()=>window.print(), 150);
+  }
+</script>
+
+</body>
+</html>

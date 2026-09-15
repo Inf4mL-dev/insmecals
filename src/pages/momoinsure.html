@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MomoInsure — Premium Calculator | Enterprise Insurance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+:root{
+  /* Local names kept for the rest of this file, aliased to the shared theme */
+  --brand-1:var(--primary);
+  --brand-2:var(--primary-dark);
+  --paper:var(--surface-card);
+  --bg:var(--surface);
+
+  --tint-06: color-mix(in srgb, var(--brand-1) 6%, var(--surface));
+  --tint-12: color-mix(in srgb, var(--brand-1) 12%, var(--surface));
+  --tint-25: color-mix(in srgb, var(--brand-1) 25%, var(--surface));
+  --tint-45: color-mix(in srgb, var(--brand-1) 45%, var(--surface));
+  --mix-even: color-mix(in srgb, var(--brand-1) 50%, var(--brand-2));
+  --shade-15: color-mix(in srgb, var(--brand-2) 85%, black);
+  --shade-30: color-mix(in srgb, var(--brand-2) 70%, black);
+  --alert: var(--danger);
+  --alert-tint: var(--danger-tint);
+  --grey-border:var(--line);
+  --grey-text:var(--ink-soft);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(circle at 8% 0%, var(--tint-12), transparent 45%),
+    radial-gradient(circle at 100% 100%, var(--tint-06), transparent 40%),
+    var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  padding:36px 18px 60px;
+}
+.wrap{max-width:760px;margin:0 auto;}
+
+/* header */
+.masthead{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.masthead img{height:42px;width:auto;object-fit:contain;}
+.masthead .fallback-logo{
+  font-weight:800;font-size:15px;letter-spacing:0.5px;color:var(--brand-2);
+  border:2px solid var(--brand-2);padding:8px 12px;border-radius:4px;display:none;
+}
+.masthead-text{flex:1;}
+.masthead-text .tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--shade-15);font-weight:700;}
+.masthead-text .member{font-size:11px;color:var(--grey-text);margin-top:1px;}
+
+.hero{margin:26px 0 30px;}
+.hero h1{
+  font-size:28px;margin:0 0 6px;font-weight:800;
+  background:linear-gradient(90deg, var(--brand-2), var(--mix-even));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{margin:0;color:var(--grey-text);font-size:14px;line-height:1.5;max-width:520px;}
+
+/* landing view */
+#build-view{display:none;}
+.landing-card{text-align:center;padding:52px 32px;margin-top:26px;}
+.landing-icon{
+  width:56px;height:56px;border-radius:50%;margin:0 auto 18px;
+  background:linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:700;font-size:24px;
+}
+.landing-card h1{
+  font-size:24px;margin:0 0 10px;font-weight:800;
+  background:linear-gradient(90deg, var(--brand-2), var(--mix-even));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.landing-card p{margin:0 auto 26px;color:var(--grey-text);font-size:14px;line-height:1.55;max-width:400px;}
+
+/* wizard */
+.wizard-topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  margin:26px 0 14px;font-size:12px;font-weight:700;color:var(--shade-15);
+  letter-spacing:0.4px;
+}
+.wizard-topbar .covers-count-wrap{
+  background:var(--tint-12);color:var(--brand-2);border-radius:20px;padding:5px 12px;
+}
+.wizard-progress-bar{height:4px;background:var(--grey-border);border-radius:4px;margin-bottom:22px;overflow:hidden;}
+.wizard-progress-fill{height:100%;background:linear-gradient(90deg, var(--brand-1), var(--brand-2));transition:width .25s ease;width:25%;}
+
+/* card */
+.card{
+  background:var(--paper);border:1px solid var(--grey-border);
+  border-radius:12px;padding:26px 24px;box-shadow:0 10px 30px rgba(14,31,46,0.06);
+}
+
+.group-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--shade-15);
+  font-weight:700;margin:22px 0 10px;
+}
+.group-label:first-child{margin-top:0;}
+
+.field{
+  border:1.5px dashed var(--grey-border);
+  border-radius:8px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  transition:border-color .2s ease, background .2s ease, opacity .2s ease;
+  background:var(--surface-soft);
+}
+.field.active{
+  border-style:solid;
+  border-color:var(--brand-1);
+  background: var(--tint-06);
+}
+.field label{
+  display:block;font-size:13.5px;font-weight:600;margin-bottom:8px;color:var(--ink);
+}
+.field .row{display:flex;align-items:center;gap:8px;}
+.field .prefix{
+  font-family:var(--font-mono);font-size:13px;color:var(--grey-text);
+  background:var(--surface-card);border:1px solid var(--grey-border);border-radius:6px;padding:9px 10px;
+}
+.field.active .prefix{color:var(--brand-2);border-color:var(--tint-45);}
+.field input[type=number]{
+  flex:1;font-family:var(--font-mono);font-size:15px;
+  border:1px solid var(--grey-border);border-radius:6px;padding:9px 12px;
+  background:var(--surface-card);color:var(--ink);outline:none;transition:border-color .2s ease;
+}
+.field input[type=number]:focus{border-color:var(--brand-1);}
+.field.active input[type=number]{border-color:var(--tint-45);}
+.field select{
+  width:100%;font-family:var(--font-ui);font-size:14px;
+  border:1px solid var(--grey-border);border-radius:6px;padding:9px 12px;
+  background:var(--surface-card);color:var(--ink);outline:none;transition:border-color .2s ease;
+  cursor:pointer;
+}
+.field select:focus{border-color:var(--brand-1);}
+.field.active select{border-color:var(--tint-45);}
+.field .status{font-size:11px;color:var(--grey-text);margin-top:6px;}
+.field.active .status{color:var(--brand-2);font-weight:600;}
+
+/* validation banner */
+.banner{
+  display:none;
+  background:var(--alert-tint);border:1px solid var(--alert);color:var(--alert);
+  font-size:13px;font-weight:600;border-radius:8px;padding:11px 14px;margin:14px 0 4px;
+}
+.banner.show{display:block;}
+
+/* calculate button */
+.actions{margin-top:20px;display:flex;justify-content:flex-end;align-items:center;}
+#prev-btn{margin-right:auto;}
+.btn{
+  font-family:var(--font-ui);font-weight:700;font-size:14.5px;
+  border:none;border-radius:8px;padding:13px 26px;cursor:pointer;
+  transition:transform .15s ease, box-shadow .2s ease, filter .15s ease;
+}
+.btn-primary{
+  color:#fff;
+  background:linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  box-shadow:0 6px 16px color-mix(in srgb, var(--brand-2) 35%, transparent);
+}
+.btn-primary:hover{
+  transform:translateY(-2px) scale(1.015);
+  box-shadow:0 10px 22px color-mix(in srgb, var(--brand-2) 45%, transparent);
+  filter:brightness(1.05);
+  cursor:pointer;
+}
+.btn-primary:active{transform:translateY(0) scale(0.99);}
+
+.btn-secondary{
+  background:var(--surface-card);color:var(--brand-2);border:1.5px solid var(--tint-45);
+}
+.btn-secondary:hover{background:var(--tint-06);border-color:var(--brand-1);cursor:pointer;}
+
+.btn-text{background:none;color:var(--grey-text);padding:13px 10px;}
+.btn-text:hover{color:var(--brand-2);cursor:pointer;}
+
+/* response view */
+#response-view{display:none;}
+.result-card{
+  background:linear-gradient(135deg, var(--shade-15), var(--brand-2));
+  border-radius:12px;padding:30px 26px;color:#fff;text-align:center;
+  box-shadow:0 14px 32px color-mix(in srgb, var(--brand-2) 40%, transparent);
+}
+.result-card .label{font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:0.85;}
+.result-card .amount{font-family:var(--font-mono);font-size:38px;font-weight:700;margin:10px 0 4px;}
+.result-card .amount span{font-size:16px;opacity:0.85;margin-right:6px;}
+.duration-row{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.duration-row label{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:0.85;}
+.duration-row select{
+  font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--brand-2);
+  background:#fff;border:none;border-radius:20px;padding:7px 14px;cursor:pointer;outline:none;
+}
+.fy-note{font-size:11px;opacity:0.75;margin-top:6px;}
+.covers-list{margin-top:16px;font-size:12.5px;opacity:0.9;line-height:1.7;}
+.covers-list .cover-item{display:inline-block;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;margin:3px;}
+
+.response-actions{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+
+/* modal */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(14,31,46,0.55);
+  align-items:center;justify-content:center;z-index:50;padding:16px;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--surface-card);border-radius:12px;padding:26px 24px;max-width:420px;width:100%;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+.modal h3{margin:0 0 4px;font-size:17px;color:var(--brand-2);}
+.modal p{margin:0 0 18px;font-size:12.5px;color:var(--grey-text);}
+.modal .field{background:var(--surface-card);}
+.modal .field label{font-size:12.5px;}
+.modal .field input[type=text]{
+  width:100%;font-family:var(--font-ui);font-size:14px;padding:10px 12px;
+  border:1px solid var(--grey-border);border-radius:6px;outline:none;
+}
+.modal .field input[type=text]:focus, .modal .field input[type=tel]:focus{border-color:var(--brand-1);}
+.modal .field input[type=tel]{
+  width:100%;font-family:var(--font-mono);font-size:14px;padding:10px 12px;
+  border:1px solid var(--grey-border);border-radius:6px;outline:none;
+}
+.modal .field .hint{font-size:10.5px;color:var(--grey-text);margin-top:5px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+/* print-only quote sheet */
+#print-area{display:none;}
+
+@media print{
+  body *{visibility:hidden;}
+  #print-area, #print-area *{visibility:visible;}
+  #print-area{display:block;position:absolute;top:0;left:0;width:100%;padding:20px;}
+  .q-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:14px;margin-bottom:6px;}
+  .q-header img{height:50px;}
+  .q-header-left .member{font-size:10px;color:var(--grey-text);margin-top:6px;}
+  .q-header-left .reference{font-size:11.5px;font-style:italic;color:var(--ink);border-left:2px solid var(--brand-2);padding-left:8px;margin-top:6px;}
+  .q-header-right{text-align:right;font-size:11.5px;line-height:1.55;}
+  .q-header-right .org-name{font-weight:800;color:var(--brand-2);font-size:13px;margin-bottom:2px;}
+  .q-header-right .addr-line{color:var(--ink);}
+  .q-header-right .contact-line{margin-top:4px;}
+  .q-header-right a{color:var(--brand-2);text-decoration:none;}
+  .q-divider{border:none;border-top:1px solid var(--grey-border);margin-bottom:18px;}
+  .q-title{font-size:20px;font-weight:800;color:var(--brand-2);margin:0 0 2px;}
+  .q-meta{font-size:11.5px;color:var(--grey-text);margin-bottom:4px;}
+  .q-duration{font-size:11.5px;color:var(--ink);font-weight:700;margin-bottom:18px;}
+  .q-fy-row td{color:var(--grey-text);border-bottom:none;}
+  .q-section-title{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--shade-15);font-weight:700;margin:18px 0 8px;border-bottom:1px solid var(--grey-border);padding-bottom:4px;}
+  .q-insured-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:12.5px;}
+  .q-insured-grid div b{display:block;font-size:10px;text-transform:uppercase;color:var(--grey-text);font-weight:700;margin-bottom:2px;}
+  table.q-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;}
+  table.q-table th{background:var(--tint-12);text-align:left;padding:8px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--shade-15);}
+  table.q-table td{padding:8px 10px;border-bottom:1px solid var(--grey-border);}
+  table.q-table td.num, table.q-table th.num{text-align:right;font-family:var(--font-mono);}
+  .q-total-row td{font-weight:800;border-top:2px solid var(--brand-2);border-bottom:none;font-size:13px;}
+  .q-notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+  .q-notes-grid ul{margin:0;padding-left:16px;font-size:10.5px;line-height:1.6;color:var(--ink);}
+  .q-notes-grid li{margin-bottom:3px;}
+  .q-subjectivities{font-size:10.5px;color:var(--grey-text);line-height:1.6;margin-top:16px;border-top:1px solid var(--grey-border);padding-top:12px;}
+  .q-footer{margin-top:24px;font-size:10px;color:var(--grey-text);text-align:center;}
+}
+</style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+<div class="wrap">
+
+  <div class="masthead">
+    <img id="logo-img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBAjJdjguZ9CO_L8H5hriNyF1YX7TMAUjb_02SwyMCRg&s=10" alt="Enterprise Insurance">
+    <div class="fallback-logo" id="logo-fallback">ENTERPRISE INSURANCE</div>
+    <div class="masthead-text">
+      <div class="tag">Enterprise Insurance</div>
+      <div class="member">Informal &amp; SME Market Segment</div>
+    </div>
+  </div>
+
+  <!-- LANDING VIEW -->
+  <div id="landing-view" class="card landing-card">
+    <div class="landing-icon">₵</div>
+    <h1>Hello! Welcome to the MomoInsure Calculator</h1>
+    <p>Get an instant premium estimate for your agent cover — Fire, Money, Public Liability, and Personal Accident — one section at a time.</p>
+    <button class="btn btn-primary" id="get-quote-btn">Get a Quote</button>
+  </div>
+
+  <!-- BUILD VIEW (WIZARD) -->
+  <div id="build-view">
+
+    <div class="wizard-topbar">
+      <div>Step <span id="step-current">1</span> of 4</div>
+      <div class="covers-count-wrap"><span id="covers-count">0</span> cover(s) selected</div>
+    </div>
+    <div class="wizard-progress-bar"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
+
+    <div class="card">
+
+      <div class="step" data-step="1">
+        <div class="group-label">Section 1 — Fire &amp; Burglary</div>
+        <div class="field" data-id="fire">
+          <label>Sum Insured</label>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="number" min="0" step="100" data-id="fire" class="sum-input" placeholder="0.00">
+          </div>
+          <div class="status">Not selected</div>
+        </div>
+      </div>
+
+      <div class="step" data-step="2" style="display:none;">
+        <div class="group-label">Section 2 — Money Insurance</div>
+        <div class="field" data-id="premtype">
+          <label>Premises Type</label>
+          <select id="premises-type" class="type-select">
+            <option value="">Select a type…</option>
+            <option value="A">Type A — Sandcrete/cement block construction, locked, with CCTV and an on-site safe</option>
+            <option value="B">Type B — Container, wood, or metal construction, with no safe and no CCTV</option>
+            <option value="C">Type C — Fully open-air operation (e.g. under a tent) with no fixed structure; cash kept in a bag on the operator</option>
+          </select>
+          <div class="status">Not selected</div>
+        </div>
+        <div class="field" data-id="holdup">
+          <label>Hold Up — Sum Insured</label>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="number" min="0" step="100" data-id="holdup" class="sum-input" placeholder="0.00">
+          </div>
+          <div class="status">Not selected</div>
+        </div>
+        <div class="field" data-id="transit">
+          <label>Cash in Transit — Sum Insured</label>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="number" min="0" step="100" data-id="transit" class="sum-input" placeholder="0.00">
+          </div>
+          <div class="status">Not selected</div>
+        </div>
+      </div>
+
+      <div class="step" data-step="3" style="display:none;">
+        <div class="group-label">Section 3 — Public Liability</div>
+        <div class="field" data-id="liability">
+          <label>Sum Insured</label>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="number" min="0" step="100" data-id="liability" class="sum-input" placeholder="0.00">
+          </div>
+          <div class="status">Not selected</div>
+        </div>
+      </div>
+
+      <div class="step" data-step="4" style="display:none;">
+        <div class="group-label">Section 4 — Personal Accident Cover</div>
+        <div class="field" data-id="pa">
+          <label>Sum Insured</label>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="number" min="0" step="100" data-id="pa" class="sum-input" placeholder="0.00">
+          </div>
+          <div class="status">Not selected</div>
+        </div>
+      </div>
+
+      <div id="banner" class="banner"></div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="prev-btn" style="display:none;">&larr; Prev</button>
+        <button class="btn btn-primary" id="next-btn">Next</button>
+        <button class="btn btn-primary" id="generate-btn" style="display:none;">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPONSE VIEW -->
+  <div id="response-view">
+    <div class="result-card">
+      <div class="label">Premium Payable</div>
+      <div class="amount"><span>GHS</span><span id="total-amt">0.00</span></div>
+      <div class="duration-row">
+        <label for="duration-select">Cover Duration</label>
+        <select id="duration-select">
+          <option value="12">12 Months (1 Year)</option>
+          <option value="11">11 Months</option>
+          <option value="10">10 Months</option>
+          <option value="9">9 Months</option>
+          <option value="8">8 Months</option>
+          <option value="7">7 Months</option>
+          <option value="6">6 Months</option>
+          <option value="5">5 Months</option>
+          <option value="4">4 Months</option>
+          <option value="3">3 Months</option>
+          <option value="2">2 Months</option>
+          <option value="1">1 Month</option>
+        </select>
+      </div>
+      <div class="fy-note" id="fy-note"></div>
+      <div class="covers-list" id="covers-list"></div>
+    </div>
+    <div class="response-actions">
+      <button class="btn btn-primary" id="print-btn">Print Quote</button>
+      <button class="btn btn-text" id="back-btn">&larr; Back to calculator</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>A few details for the quote</h3>
+    <p>These appear on the printed MomoInsure quotation.</p>
+    <div class="field"><label>Insured Name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
+    <div class="field"><label>Contact</label><input type="tel" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div class="field"><label>Shop Location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
+    <div class="field"><label>Agent's Code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
+    <div id="modal-banner" class="banner"></div>
+    <div class="modal-actions">
+      <button class="btn btn-text" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-generate">Generate &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT-ONLY QUOTE -->
+<div id="print-area">
+  <div class="q-header">
+    <div class="q-header-left">
+      <img src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance.png" alt="Enterprise Insurance">
+      <div class="member">A Member of the Enterprise Group</div>
+      <div class="reference" id="q-reference">Reference: —</div>
+    </div>
+    <div class="q-header-right">
+      <div class="org-name">EIC Informal &amp; SME Market Segment</div>
+      <div class="addr-line">No. 47 Patrice Lumumba Street,</div>
+      <div class="addr-line">Airport Residential Area, Accra</div>
+      <div class="contact-line"><a href="tel:+233247984909">+233 24 798 4909</a></div>
+      <div class="contact-line"><a href="mailto:eicinformalmarket@gmail.com">eicinformalmarket@gmail.com</a></div>
+    </div>
+  </div>
+  <hr class="q-divider">
+
+  <div class="q-title">MomoInsure — Premium Quotation</div>
+  <div class="q-meta" id="q-meta"></div>
+  <div class="q-duration" id="q-duration"></div>
+
+  <div class="q-section-title">Insured Details</div>
+  <div class="q-insured-grid">
+    <div><b>Insured Name</b><span id="q-name"></span></div>
+    <div><b>Contact</b><span id="q-contact"></span></div>
+    <div><b>Shop Location</b><span id="q-location"></span></div>
+    <div><b>Agent's Code</b><span id="q-code"></span></div>
+  </div>
+
+  <div class="q-premtype-row" id="q-premtype-row" style="display:none;margin-top:10px;font-size:12.5px;">
+    <b style="display:block;font-size:10px;text-transform:uppercase;color:var(--grey-text);font-weight:700;margin-bottom:2px;">Premises Type</b>
+    <span id="q-premtype-value"></span>
+  </div>
+
+  <div class="q-section-title">Cover Summary</div>
+  <table class="q-table">
+    <thead><tr><th>Section</th><th class="num">Sum Insured (GHS)</th><th class="num">Premium (GHS)</th></tr></thead>
+    <tbody id="q-lines"></tbody>
+    <tfoot>
+      <tr class="q-fy-row"><td>Full Year Premium (12 months)</td><td></td><td class="num" id="q-fy-total"></td></tr>
+      <tr class="q-total-row"><td>Total Payable — <span id="q-total-label"></span></td><td></td><td class="num" id="q-total"></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="q-section-title">Key Exclusions &amp; General Conditions</div>
+  <div class="q-notes-grid">
+    <ul>
+      <li>Cash shortage due to error or omission</li>
+      <li>Loss from employee fraud or dishonesty</li>
+      <li>Loss/damage from riot, war, or terrorism</li>
+      <li>Cash not kept in a safe or strong room</li>
+      <li>Cash held at home/office 48hrs+ after withdrawal</li>
+      <li>Theft from an unsecured vehicle</li>
+    </ul>
+    <ul>
+      <li>Ghana Card required at onboarding</li>
+      <li>Maximum one claim per person per annum under Money Insurance</li>
+      <li>Agent must operate from a secured, structured premises</li>
+      <li>Claims require a police report where applicable</li>
+    </ul>
+  </div>
+
+  <div class="q-subjectivities">
+    <b>Subjectivities.</b> This quotation is valid for 30 days from the date of issue. Coverage will commence upon receipt of full premium payment. Final premium may vary based on additional coverage selection. This quote is subject to our standard policy wording.
+  </div>
+
+  <div class="q-footer">Generated by MomoInsure &middot; Enterprise Insurance &middot; This is a quotation, not a policy document.</div>
+</div>
+
+<script>
+const SECTIONS = [
+  { id:'fire',      label:'Section 1 — Fire & Burglary',        rate:0.0015 },
+  { id:'holdup',    label:'Section 2 — Money Insurance: Hold Up',    group:'money' },
+  { id:'transit',   label:'Section 2 — Money Insurance: Cash in Transit', group:'money' },
+  { id:'liability', label:'Section 3 — Public Liability',            rate:0.005 },
+  { id:'pa',        label:'Section 4 — Personal Accident Cover',     rate:0.0025 },
+];
+
+// Premises Type rates (Money Insurance only) — internal, never shown in the UI
+const TYPE_RATES = { A:0.005, B:0.0075, C:0.01 };
+const TYPE_DESCRIPTIONS = {
+  A:'Sandcrete/cement block construction, locked, with CCTV and an on-site safe.',
+  B:'Container, wood, or metal construction, with no safe and no CCTV.',
+  C:'Fully open-air operation (e.g. under a tent) with no fixed structure; cash kept in a bag on the operator.'
+};
+
+let lastResult = null; // { lines:[{label,sum,premium}], total, premisesType }
+
+const fmt = n => n.toLocaleString('en-GH', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+// logo fallback
+document.getElementById('logo-img').addEventListener('error', function(){
+  this.style.display='none';
+  document.getElementById('logo-fallback').style.display='inline-block';
+});
+
+// ---- view routing ----
+const VIEW_IDS = ['landing-view','build-view','response-view'];
+function showView(id){
+  VIEW_IDS.forEach(v => {
+    document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
+  });
+}
+
+// ---- wizard state ----
+const TOTAL_STEPS = 4;
+let currentStep = 1;
+
+function updateCoversCount(){
+  const count = SECTIONS.filter(s => (parseFloat(document.querySelector(`.sum-input[data-id="${s.id}"]`).value) || 0) > 0).length;
+  document.getElementById('covers-count').textContent = count;
+}
+
+function showStep(n){
+  document.querySelectorAll('.step').forEach(el => {
+    el.style.display = (parseInt(el.dataset.step, 10) === n) ? 'block' : 'none';
+  });
+  document.getElementById('step-current').textContent = n;
+  document.getElementById('wizard-progress-fill').style.width = `${(n / TOTAL_STEPS) * 100}%`;
+  document.getElementById('prev-btn').style.display = n === 1 ? 'none' : 'inline-block';
+  document.getElementById('next-btn').style.display = n === TOTAL_STEPS ? 'none' : 'inline-block';
+  document.getElementById('generate-btn').style.display = n === TOTAL_STEPS ? 'inline-block' : 'none';
+  hideBanner();
+  updateCoversCount();
+}
+
+document.getElementById('get-quote-btn').addEventListener('click', ()=>{
+  currentStep = 1;
+  showView('build-view');
+  showStep(1);
+});
+
+document.getElementById('next-btn').addEventListener('click', ()=>{
+  if(currentStep === 2){
+    const holdup = parseFloat(document.querySelector('.sum-input[data-id="holdup"]').value) || 0;
+    const transit = parseFloat(document.querySelector('.sum-input[data-id="transit"]').value) || 0;
+    if(holdup <= 0 && transit <= 0){
+      showBanner('Enter a sum insured for Hold Up or Cash in Transit to continue.');
+      return;
+    }
+    const premType = document.getElementById('premises-type').value;
+    if(!premType){
+      showBanner('Select a Premises Type to continue.');
+      return;
+    }
+  }
+  currentStep = Math.min(currentStep + 1, TOTAL_STEPS);
+  showStep(currentStep);
+});
+
+document.getElementById('prev-btn').addEventListener('click', ()=>{
+  currentStep = Math.max(currentStep - 1, 1);
+  showStep(currentStep);
+});
+
+// grey-out / active state on the Premises Type dropdown
+document.getElementById('premises-type').addEventListener('change', ()=>{
+  const select = document.getElementById('premises-type');
+  const field = document.querySelector('.field[data-id="premtype"]');
+  const status = field.querySelector('.status');
+  if(select.value){
+    field.classList.add('active');
+    status.textContent = 'Selected';
+  } else {
+    field.classList.remove('active');
+    status.textContent = 'Not selected';
+  }
+});
+
+// grey-out / active state on input, plus live counter
+document.querySelectorAll('.sum-input').forEach(input=>{
+  input.addEventListener('input', ()=>{
+    const field = document.querySelector(`.field[data-id="${input.dataset.id}"]`);
+    const status = field.querySelector('.status');
+    const val = parseFloat(input.value);
+    if(val > 0){
+      field.classList.add('active');
+      status.textContent = 'Selected';
+    } else {
+      field.classList.remove('active');
+      status.textContent = 'Not selected';
+    }
+    updateCoversCount();
+  });
+});
+
+function getSelections(){
+  const premType = document.getElementById('premises-type').value;
+  return SECTIONS
+    .map(s => ({
+      ...s,
+      rate: s.group === 'money' ? (TYPE_RATES[premType] || 0) : s.rate,
+      sum: parseFloat(document.querySelector(`.sum-input[data-id="${s.id}"]`).value) || 0
+    }))
+    .filter(s => s.sum > 0);
+}
+
+function showBanner(msg){
+  const b = document.getElementById('banner');
+  b.textContent = msg;
+  b.classList.add('show');
+}
+function hideBanner(){
+  document.getElementById('banner').classList.remove('show');
+}
+
+function computeChargedPremium(fy, months){
+  if(months >= 12) return fy;
+  const proRata = (months / 12) * fy;
+  const loading = 0.20 * fy;
+  return Math.min(proRata + loading, fy);
+}
+
+function renderPremiumForDuration(){
+  const months = parseInt(document.getElementById('duration-select').value, 10);
+  const charged = computeChargedPremium(lastResult.total, months);
+  document.getElementById('total-amt').textContent = fmt(charged);
+  document.getElementById('fy-note').textContent = months < 12
+    ? `Full Year Premium: GHS ${fmt(lastResult.total)}`
+    : '';
+}
+
+document.getElementById('duration-select').addEventListener('change', renderPremiumForDuration);
+
+document.getElementById('generate-btn').addEventListener('click', ()=>{
+  const selected = getSelections();
+  const hasMoney = selected.some(s => s.id === 'holdup' || s.id === 'transit');
+  const premType = document.getElementById('premises-type').value;
+
+  if(selected.length < 2){
+    showBanner('Select at least two covers before generating a quote.');
+    return;
+  }
+  if(!hasMoney){
+    showBanner('One of your covers must be Money Insurance — Hold Up or Cash in Transit.');
+    return;
+  }
+  if(!premType){
+    showBanner('Select a Premises Type to continue.');
+    return;
+  }
+  hideBanner();
+
+  const lines = selected.map(s => ({ label:s.label, sum:s.sum, premium: s.sum * s.rate }));
+  const total = lines.reduce((sum, l) => sum + l.premium, 0);
+  lastResult = { lines, total, premisesType: premType };
+
+  document.getElementById('duration-select').value = '12';
+  renderPremiumForDuration();
+
+  const coversList = document.getElementById('covers-list');
+  coversList.innerHTML = lines.map(l => `
+    <span class="cover-item">${l.label.replace(/^Section \d — /,'')} — GHS ${fmt(l.sum)} (Premium: GHS ${fmt(l.premium)})</span>
+  `).join('');
+
+  showView('response-view');
+});
+
+document.getElementById('back-btn').addEventListener('click', ()=>{
+  showView('build-view');
+  showStep(currentStep);
+});
+
+document.getElementById('f-contact').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+});
+
+// print modal
+const overlay = document.getElementById('modal-overlay');
+document.getElementById('print-btn').addEventListener('click', ()=>{
+  overlay.classList.add('show');
+});
+document.getElementById('modal-cancel').addEventListener('click', ()=>{
+  overlay.classList.remove('show');
+});
+
+function formatGhanaNumber(digits){
+  // digits: 10-digit string starting with 0, e.g. 0551234567
+  const rest = digits.slice(1); // 9 digits
+  return `(+233) ${rest.slice(0,2)}-${rest.slice(2,5)}-${rest.slice(5,9)}`;
+}
+
+document.getElementById('modal-generate').addEventListener('click', ()=>{
+  const name = document.getElementById('f-name').value.trim();
+  const contactRaw = document.getElementById('f-contact').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const code = document.getElementById('f-code').value.trim();
+  const mb = document.getElementById('modal-banner');
+
+  if(!name || !contactRaw || !location || !code){
+    mb.textContent = 'Please fill in all four details.';
+    mb.classList.add('show');
+    return;
+  }
+  if(!/^0\d{9}$/.test(contactRaw)){
+    mb.textContent = 'Contact must be a 10-digit Ghanaian number starting with 0, e.g. 0551234567.';
+    mb.classList.add('show');
+    return;
+  }
+  mb.classList.remove('show');
+
+  const contact = formatGhanaNumber(contactRaw);
+
+  document.getElementById('q-name').textContent = name;
+  document.getElementById('q-contact').textContent = contact;
+  document.getElementById('q-location').textContent = location;
+  document.getElementById('q-code').textContent = code;
+
+  const today = new Date();
+  const issued = today.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+  const quoteNo = 'MI-' + today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0') + '-' + Math.floor(1000+Math.random()*9000);
+  document.getElementById('q-meta').textContent = `Date Issued: ${issued}`;
+  document.getElementById('q-reference').textContent = `Reference: ${quoteNo}`;
+
+  const months = parseInt(document.getElementById('duration-select').value, 10);
+  const charged = computeChargedPremium(lastResult.total, months);
+  const durationLabel = months === 12 ? '12 Months (1 Year)' : (months === 1 ? '1 Month' : `${months} Months`);
+  document.getElementById('q-duration').textContent = `Cover Duration: ${durationLabel}`;
+  document.getElementById('q-total-label').textContent = durationLabel;
+  document.getElementById('q-total').textContent = fmt(charged);
+
+  const fyRow = document.querySelector('.q-fy-row');
+  if(months < 12){
+    fyRow.style.display = '';
+    document.getElementById('q-fy-total').textContent = fmt(lastResult.total);
+  } else {
+    fyRow.style.display = 'none';
+  }
+
+  document.getElementById('q-lines').innerHTML = lastResult.lines.map(l => `
+    <tr><td>${l.label}</td><td class="num">${fmt(l.sum)}</td><td class="num">${fmt(l.premium)}</td></tr>
+  `).join('');
+
+  const premTypeRow = document.getElementById('q-premtype-row');
+  if(lastResult.premisesType){
+    premTypeRow.style.display = '';
+    document.getElementById('q-premtype-value').textContent =
+      `${lastResult.premisesType} — ${TYPE_DESCRIPTIONS[lastResult.premisesType]}`;
+  } else {
+    premTypeRow.style.display = 'none';
+  }
+
+  overlay.classList.remove('show');
+  window.print();
+});
+</script>
+</body>
+</html>

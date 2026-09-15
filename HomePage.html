@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InSME Calculators — Enterprise Insurance</title>
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="src/assets/css/shared.css">
+
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    font-size:18px;
+    color:var(--ink);
+    background:var(--surface);
+    line-height:1.55;
+  }
+  h1,h2,h3{
+    font-family:var(--font-heading);
+    margin:0;
+    letter-spacing:-0.01em;
+    font-weight:600;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+
+  /* Hero */
+  .hero{
+    padding:80px 0 64px;
+    text-align:center;
+    background:
+      radial-gradient(700px 300px at 85% -10%, var(--tint-2), transparent 60%),
+      radial-gradient(600px 260px at 10% -10%, var(--tint), transparent 60%),
+      var(--surface);
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-ui);
+    font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--primary-dark); background:var(--tint); padding:6px 12px; border-radius:999px;
+    margin-bottom:22px;
+  }
+  .hero-logo{height:56px;margin-bottom:20px;}
+  .hero h1{font-size:48px; line-height:1.08; color:var(--ink);}
+  .hero h1 span{color:var(--primary-dark);}
+  .hero p.lede{font-family:var(--font-body); font-size:20px; color:var(--ink-soft); margin:18px auto 0; max-width:52ch;}
+  .hero-actions{display:flex; gap:14px; margin-top:32px; justify-content:center;}
+  .btn-primary{
+    font-family:var(--font-ui);
+    background:var(--primary-dark); color:#fff; padding:13px 26px; border-radius:10px;
+    font-weight:700; font-size:15px; text-decoration:none; box-shadow:var(--shadow);
+  }
+  .btn-ghost{
+    font-family:var(--font-ui);
+    padding:13px 24px; border-radius:10px; font-weight:700; font-size:15px;
+    text-decoration:none; color:var(--primary-dark); border:1.5px solid var(--line);
+  }
+
+  /* Trust strip */
+  .trust{background:var(--primary-dark); color:#fff;}
+  .trust .wrap{
+    display:flex; justify-content:space-between; padding:26px 24px; flex-wrap:wrap; gap:20px;
+  }
+  .trust-item{flex:1; min-width:150px; text-align:center;}
+  .trust-item .num{font-family:var(--font-heading); font-size:26px; font-weight:700;}
+  .trust-item .cap{font-family:var(--font-ui); font-size:12.5px; opacity:0.85; margin-top:2px;}
+
+  /* Tool grid */
+  .section{padding:64px 0;}
+  .section-head{max-width:560px; margin:0 auto 40px; text-align:center;}
+  .section-head .eyebrow{margin-bottom:14px;}
+  .section-head h2{font-size:32px;}
+  .section-head p{font-family:var(--font-body); color:var(--ink-soft); margin-top:12px; font-size:18px;}
+
+  .tool-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+  }
+  .tool-card{
+    position:relative;
+    border:1px solid var(--line); border-radius:var(--radius); padding:24px;
+    text-decoration:none; color:inherit; transition:transform .15s, box-shadow .15s, border-color .15s;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .tool-card:hover{transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--primary);}
+  .tool-icon{
+    width:42px; height:42px; border-radius:10px; background:var(--tint);
+    display:flex; align-items:center; justify-content:center; color:var(--primary-dark); font-weight:800; font-size:18px;
+    font-family:var(--font-heading);
+  }
+  .tool-card h3{font-size:17px; font-family:var(--font-heading); font-weight:600;}
+  .tool-card p{font-family:var(--font-body); font-size:16px; color:var(--ink-soft); margin:0; line-height:1.45;}
+  .tool-card .go{font-family:var(--font-ui); font-size:13px; font-weight:700; color:var(--primary-dark); margin-top:auto;}
+  .badge-soon{
+    position:absolute; top:16px; right:16px;
+    font-family:var(--font-ui); font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--ink-soft); background:var(--tint); padding:4px 9px; border-radius:999px;
+  }
+  .badge-external{
+    position:absolute; top:16px; right:16px;
+    font-family:var(--font-ui); font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--primary-dark); background:var(--tint-2); padding:4px 9px; border-radius:999px;
+  }
+
+  footer{
+    border-top:1px solid var(--line); padding:32px 0; font-family:var(--font-ui); font-size:13px; color:var(--ink-soft);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  }
+
+  @media (max-width:860px){
+    .tool-grid{grid-template-columns:1fr 1fr;}
+    .hero h1{font-size:34px;}
+  }
+  @media (max-width:560px){
+    .tool-grid{grid-template-columns:1fr;}
+    .trust .wrap{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<script src="src/assets/js/site-nav.js"></script>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Internal tools</div>
+    <h1>Every policy calculation, <span>in one place.</span></h1>
+    <p class="lede">Quote premiums, check commissions, and manage SME policies in seconds — built for the team, tuned to how Enterprise Insurance actually prices cover.</p>
+    <div class="hero-actions">
+      <a href="#calculators" class="btn-primary">Browse calculators</a>
+      <a href="mailto:support@enterprisegroup.net.gh" class="btn-ghost">Get support</a>
+    </div>
+  </div>
+</section>
+
+<section class="trust">
+  <div class="wrap">
+    <div class="trust-item"><div class="num">7</div><div class="cap">tools on this hub</div></div>
+    <div class="trust-item"><div class="num">&lt;2min</div><div class="cap">average quote time</div></div>
+    <div class="trust-item"><div class="num">100%</div><div class="cap">rates match underwriting sheet</div></div>
+    <div class="trust-item"><div class="num">2026</div><div class="cap">rate table version</div></div>
+  </div>
+</section>
+
+<section class="section" id="calculators">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Calculators</div>
+      <h2>Pick a tool</h2>
+      <p>Each calculator uses the current underwriting tables and generates a printable quote.</p>
+    </div>
+
+    <div class="tool-grid">
+      <a class="tool-card" href="src/pages/momoinsure.html">
+        <div class="tool-icon">M</div>
+        <h3>MoMo Insure</h3>
+        <p>Fire &amp; Burglary, Money, Public Liability and Personal Accident cover for mobile money agents.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+
+      <a class="tool-card" href="src/pages/motor.html">
+        <div class="tool-icon">V</div>
+        <h3>Motor</h3>
+        <p>Third Party, TPA/TPFT and Comprehensive motor premiums by vehicle type and cover.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+
+      <a class="tool-card" href="https://egapps.enterprisegroup.net.gh:4077/public/login" target="_blank" rel="noopener">
+        <span class="badge-external">External</span>
+        <div class="tool-icon">P</div>
+        <h3>Agency Portal</h3>
+        <p>Log in to the Enterprise Group agency platform to manage policies and clients.</p>
+        <span class="go">Open portal →</span>
+      </a>
+
+      <a class="tool-card" href="https://wa.me/message/5MPWOEQEJZRKK1" target="_blank" rel="noopener">
+        <span class="badge-external">WhatsApp</span>
+        <div class="tool-icon">E</div>
+        <h3>Ekwando Dwodwo</h3>
+        <p>Chat with the team directly on WhatsApp for quick help and quotes.</p>
+        <span class="go">Open chat →</span>
+      </a>
+
+      <a class="tool-card" href="src/pages/ahotopii.html">
+        <div class="tool-icon">A</div>
+        <h3>Ahotopii</h3>
+        <p>Fire &amp; Burglary premium calculator by sum insured and risk category.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+
+      <a class="tool-card" href="src/pages/sme-insure.html">
+        <span class="badge-soon">Coming soon</span>
+        <div class="tool-icon">S</div>
+        <h3>SME Insure</h3>
+        <p>Bundled cover built for small and medium enterprises.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+
+      <a class="tool-card" href="src/pages/commission.html">
+        <div class="tool-icon">C</div>
+        <h3>Commission</h3>
+        <p>Internal agent tool for calculating commission payable on written premium.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+
+      <a class="tool-card" href="src/pages/date-age.html">
+        <div class="tool-icon">D</div>
+        <h3>Date &amp; Age Calculator</h3>
+        <p>Work out date duration or age from date of birth — a quick everyday utility.</p>
+        <span class="go">Open calculator →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; width:100%;">
+    <span>© 2026 Enterprise Insurance — InSME Calculators, internal use only</span>
+    <span>Rate table v2026.3</span>
+  </div>
+</footer>
+
+</body>
+</html>

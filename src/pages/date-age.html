@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date & Age Calculator</title>
+    <script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+    <link rel="stylesheet" href="../assets/css/shared.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--surface);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--surface-card);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 480px;
+            width: 100%;
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            text-align: center;
+            color: var(--ink);
+            margin-bottom: 20px;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.3rem;
+            letter-spacing: 0.3px;
+        }
+
+        .input-page, .result-page {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-page {
+            display: none;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            color: var(--ink-soft);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            padding: 12px 16px;
+            border: 1.5px solid var(--line);
+            background: var(--surface-soft);
+            border-radius: 10px;
+            font-size: 1rem;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .input-field::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+        }
+        html[data-theme="dark"] .input-field::-webkit-calendar-picker-indicator {
+            filter: invert(0.85);
+        }
+
+        .btn {
+            padding: 13px 20px;
+            border: none;
+            background: var(--primary);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-align: center;
+            width: 100%;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1.5px solid var(--primary);
+            color: var(--primary-dark);
+            margin-top: 5px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--tint);
+        }
+
+        .error-msg {
+            background: var(--danger-tint);
+            border: 1px solid var(--danger);
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--danger);
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .result-box {
+            background: var(--surface-soft);
+            padding: 24px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            text-align: center;
+            font-size: 1.05rem;
+            color: var(--ink);
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        .result-box .highlight {
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--line);
+            margin: 5px 0 10px 0;
+        }
+
+        @media (max-width: 400px) {
+            .card {
+                padding: 20px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+    <div class="card" id="app">
+        <!-- INPUT PAGE -->
+        <div class="input-page" id="inputPage">
+            <h2>📅 Date Duration</h2>
+            <div class="input-group">
+                <label>Start Date</label>
+                <input type="date" class="input-field" id="startDate">
+            </div>
+            <div class="input-group">
+                <label>End Date</label>
+                <input type="date" class="input-field" id="endDate">
+            </div>
+            <button class="btn" onclick="calculateDuration()">Calculate Duration</button>
+            <div class="error-msg" id="durationError"></div>
+
+            <div class="divider"></div>
+
+            <h2>🎂 Age Calculator</h2>
+            <div class="input-group">
+                <label>Date of Birth</label>
+                <input type="date" class="input-field" id="dobInput">
+            </div>
+            <button class="btn" onclick="calculateAge()">Calculate Age</button>
+            <div class="error-msg" id="ageError"></div>
+
+            <div class="divider"></div>
+
+            <button class="btn" onclick="calculateBoth()">Calculate Both</button>
+            <div class="error-msg" id="bothError"></div>
+        </div>
+
+        <!-- RESULT PAGE -->
+        <div class="result-page" id="resultPage">
+            <h2 id="resultTitle">Result</h2>
+            <div class="result-box" id="resultContent"></div>
+            <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        </div>
+    </div>
+
+    <script>
+        const inputPage = document.getElementById('inputPage');
+        const resultPage = document.getElementById('resultPage');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultContent = document.getElementById('resultContent');
+        const durationError = document.getElementById('durationError');
+        const ageError = document.getElementById('ageError');
+        const bothError = document.getElementById('bothError');
+
+        function showResult(title, content) {
+            resultTitle.textContent = title;
+            resultContent.innerHTML = content;
+            inputPage.style.display = 'none';
+            resultPage.style.display = 'flex';
+            durationError.style.display = 'none';
+            ageError.style.display = 'none';
+            bothError.style.display = 'none';
+        }
+
+        function goBack() {
+            resultPage.style.display = 'none';
+            inputPage.style.display = 'flex';
+        }
+
+        function calculateDuration() {
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            durationError.style.display = 'none';
+
+            if (!startVal || !endVal) {
+                durationError.textContent = 'Please select both dates.';
+                durationError.style.display = 'block';
+                return;
+            }
+
+            const start = new Date(startVal + 'T00:00:00');
+            const end = new Date(endVal + 'T00:00:00');
+
+            if (isNaN(start) || isNaN(end)) {
+                durationError.textContent = 'Invalid date selected.';
+                durationError.style.display = 'block';
+                return;
+            }
+            if (start > end) {
+                durationError.textContent = 'Start date must be before or equal to end date.';
+                durationError.style.display = 'block';
+                return;
+            }
+
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+
+            const formattedStart = start.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            const formattedEnd = end.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+            showResult('Duration Result',
+                `From: ${formattedStart}\nTo: ${formattedEnd}\n\n<span class="highlight">${diffDays} days</span>\n(inclusive)`
+            );
+        }
+
+        function calculateAge() {
+            const dobVal = document.getElementById('dobInput').value;
+            ageError.style.display = 'none';
+
+            if (!dobVal) {
+                ageError.textContent = 'Please select your date of birth.';
+                ageError.style.display = 'block';
+                return;
+            }
+
+            const dob = new Date(dobVal + 'T00:00:00');
+            if (isNaN(dob)) {
+                ageError.textContent = 'Invalid date selected.';
+                ageError.style.display = 'block';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (dob > today) {
+                ageError.textContent = 'Date of birth cannot be in the future.';
+                ageError.style.display = 'block';
+                return;
+            }
+
+            let years = today.getFullYear() - dob.getFullYear();
+            let months = today.getMonth() - dob.getMonth();
+            let days = today.getDate() - dob.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const formattedDob = dob.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+            showResult('Age Result',
+                `Date of Birth: ${formattedDob}\n\nYou are\n<span class="highlight">${years} years, ${months} months, ${days} days</span>\nold`
+            );
+        }
+
+        function calculateBoth() {
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            const dobVal = document.getElementById('dobInput').value;
+            bothError.style.display = 'none';
+
+            if (!startVal || !endVal || !dobVal) {
+                bothError.textContent = 'Please fill in the start date, end date, and date of birth.';
+                bothError.style.display = 'block';
+                return;
+            }
+
+            const start = new Date(startVal + 'T00:00:00');
+            const end = new Date(endVal + 'T00:00:00');
+            const dob = new Date(dobVal + 'T00:00:00');
+
+            if (isNaN(start) || isNaN(end) || isNaN(dob)) {
+                bothError.textContent = 'Invalid date selected.';
+                bothError.style.display = 'block';
+                return;
+            }
+            if (start > end) {
+                bothError.textContent = 'Start date must be before or equal to end date.';
+                bothError.style.display = 'block';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (dob > today) {
+                bothError.textContent = 'Date of birth cannot be in the future.';
+                bothError.style.display = 'block';
+                return;
+            }
+
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+
+            let years = today.getFullYear() - dob.getFullYear();
+            let months = today.getMonth() - dob.getMonth();
+            let days = today.getDate() - dob.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const formattedStart = start.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            const formattedEnd = end.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            const formattedDob = dob.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+            showResult('Duration & Age Result',
+                `From: ${formattedStart}\nTo: ${formattedEnd}\n\n<span class="highlight">${diffDays} days</span>\n(inclusive)\n\nDate of Birth: ${formattedDob}\n\nYou are\n<span class="highlight">${years} years, ${months} months, ${days} days</span>\nold`
+            );
+        }
+
+        // Clear all fields on page load
+        window.onload = () => {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('dobInput').value = '';
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motor Insurance Premium Calculator</title>
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+  :root{
+    /* Local names kept for the rest of this file, aliased to the shared theme.
+       (--line and --radius already come from shared.css and are not
+       redeclared here to avoid circular custom-property references.) */
+    --brand:var(--primary);
+    --brand-deep:var(--primary-dark);
+
+    /* Shades — brand colors mixed toward black */
+    --navy: color-mix(in srgb, var(--brand-deep) 78%, black);
+    --navy-deep: color-mix(in srgb, var(--brand-deep) 60%, black);
+    --blue: var(--brand-deep);
+
+    /* Tints — brand colors mixed toward white */
+    --gold: color-mix(in srgb, var(--brand) 55%, var(--surface));
+    --gold-soft: color-mix(in srgb, var(--brand) 12%, var(--surface));
+
+    --bg:var(--surface);
+    --card:var(--surface-card);
+    --text:var(--ink);
+    --muted:var(--ink-soft);
+    --green:var(--success);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  .wrap{ width:100%; max-width:560px; }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .topbar .badge{
+    width:42px;height:42px;border-radius:10px;
+    background:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .topbar .badge img{ width:100%;height:100%;object-fit:cover;border-radius:10px; }
+  .topbar h1{
+    font-family:var(--font-heading);
+    font-size:18px;
+    font-weight:700;
+    color:var(--navy-deep);
+    margin:0;
+    line-height:1.3;
+  }
+  .topbar p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    box-shadow:0 1px 2px rgba(11,31,58,0.04), 0 8px 24px rgba(11,31,58,0.06);
+    padding:28px 26px 26px;
+    position:relative;
+  }
+
+  .info-btn{
+    position:absolute;
+    top:20px; right:20px;
+    width:28px;height:28px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:var(--surface-card);
+    color:var(--blue);
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .18s ease;
+  }
+  .info-btn:hover{ background:var(--navy); color:#fff; border-color:var(--navy); transform:scale(1.07); }
+
+  /* ---------- Step wizard ---------- */
+  .step-nav{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    margin-bottom:22px;
+    padding-right:36px; /* keep dots visually centered against the absolute info-btn on the right */
+  }
+  .back-arrow-btn{
+    position:absolute;
+    left:0;
+    width:32px;height:32px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:var(--surface-card);
+    color:var(--blue);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:all .18s ease;
+  }
+  .back-arrow-btn svg{ width:16px;height:16px; }
+  .back-arrow-btn:hover:not(:disabled){ background:var(--navy); color:#fff; border-color:var(--navy); transform:scale(1.07); }
+  .back-arrow-btn:disabled{ opacity:.35; cursor:not-allowed; }
+
+  .step-progress{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .step-dots{ display:flex; align-items:center; gap:6px; }
+  .step-dots .dot{
+    height:7px; width:7px;
+    border-radius:50%;
+    background:var(--line);
+    transition:all .2s ease;
+  }
+  .step-dots .dot.active{ width:20px; border-radius:5px; background:var(--navy); }
+  .step-dots .dot.done{ background:var(--gold); }
+  .step-label{
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    letter-spacing:.03em;
+  }
+
+  .step-panel{ display:none; }
+  .step-panel.active{ display:block; animation:stepFade .22s ease; }
+  @keyframes stepFade{ from{ opacity:0; transform:translateX(6px); } to{ opacity:1; transform:translateX(0); } }
+
+  .section-label{
+    font-family:var(--font-heading);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 10px;
+  }
+  .section{ margin-bottom:24px; }
+  .section:first-of-type{ margin-top:4px; }
+
+  label.field-label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    margin-bottom:6px;
+  }
+
+  input[type="number"], select{
+    width:100%;
+    padding:11px 13px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    font-size:14.5px;
+    font-family:var(--font-body);
+    color:var(--text);
+    background:var(--surface-soft);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input[type="number"]:focus, select:focus{
+    outline:none;
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(20,49,92,0.1);
+    background:var(--surface-card);
+  }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:420px){ .row2{ grid-template-columns:1fr; } }
+
+  .pill-group{ display:flex; gap:10px; }
+  .pill{
+    flex:1;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:10px 8px;
+    text-align:center;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    background:var(--surface-soft);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .pill input{ display:none; }
+  .pill.active{
+    border-color:var(--navy);
+    background:var(--navy);
+    color:#fff;
+  }
+
+  .cover-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:420px){ .cover-grid{ grid-template-columns:1fr; } }
+  .cover-card{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:12px 12px;
+    cursor:pointer;
+    background:var(--surface-soft);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .cover-card input{ display:none; }
+  .cover-card .name{ font-size:13.5px; font-weight:700; color:var(--text); }
+  .cover-card .desc{ font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35; }
+  .cover-card.active{
+    border-color:var(--gold);
+    background:linear-gradient(0deg, #FFF9EC, #FFF9EC);
+    box-shadow:0 0 0 1px var(--gold) inset;
+  }
+
+  .calc-btn{
+    width:100%;
+    margin-top:6px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:var(--navy);
+    color:#fff;
+    font-family:var(--font-heading);
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.01em;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:transform .15s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .calc-btn:hover{
+    background:var(--blue);
+    box-shadow:0 6px 18px rgba(11,31,58,0.25);
+    transform:translateY(-2px);
+  }
+  .calc-btn:active{ transform:translateY(0); }
+  .calc-btn svg{ width:18px;height:18px; transition:transform .4s ease; }
+  .calc-btn:hover svg{ transform:rotate(75deg); }
+
+  .info-panel{
+    display:none;
+    background:var(--surface-soft);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 16px 14px;
+    margin-bottom:22px;
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.55;
+  }
+  .info-panel h4{
+    margin:0 0 6px;
+    font-size:12px;
+    font-family:var(--font-heading);
+    color:var(--navy-deep);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .info-panel p{ margin:0 0 8px; }
+  .info-panel ul{ margin:0 0 8px; padding-left:18px; }
+
+  /* Results */
+  #result-screen{ display:none; }
+  .result-header{ text-align:center; margin-bottom:18px; }
+  .result-header .tag{
+    display:inline-block;
+    background:var(--gold-soft);
+    color:#7A5A14;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:8px;
+  }
+  .result-header h2{
+    font-family:var(--font-heading);
+    font-size:20px;
+    margin:0;
+    color:var(--navy-deep);
+  }
+
+  .amount-card{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:18px 18px;
+    margin-bottom:14px;
+    background:var(--surface-soft);
+  }
+  .amount-card .label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .amount-card .amount{
+    font-family:var(--font-heading);
+    font-size:28px;
+    font-weight:800;
+    color:var(--navy-deep);
+    margin-top:4px;
+  }
+  .amount-card.highlight{
+    border-color:var(--gold);
+    background:var(--warning-tint);
+  }
+  .amount-card .amount .currency{ font-size:16px; font-weight:700; color:var(--blue); margin-right:4px; }
+
+  .breakdown-toggle{
+    font-size:12.5px;
+    color:var(--blue);
+    cursor:pointer;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin:4px 0 16px;
+  }
+  .breakdown{
+    display:none;
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--surface-soft);
+    border-radius:9px;
+    padding:12px 14px;
+    margin-bottom:16px;
+    line-height:1.6;
+  }
+  .breakdown div{ display:flex; justify-content:space-between; padding:2px 0; }
+  .breakdown div span:last-child{ font-weight:600; color:var(--text); }
+
+  .back-btn{
+    width:100%;
+    padding:13px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    background:var(--surface-card);
+    color:var(--navy-deep);
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .back-btn:hover{ background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  .footnote{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:16px;
+  }
+
+  /* Error popup */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(11,31,58,0.45);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:var(--surface-card);
+    border-radius:14px;
+    max-width:360px;
+    width:100%;
+    padding:24px 24px 20px;
+    box-shadow:0 12px 40px rgba(11,31,58,0.25);
+    text-align:center;
+  }
+  .modal-icon{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:var(--danger-tint);
+    color:#B23B3B;
+    font-family:var(--font-heading);
+    font-weight:800;
+    font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 12px;
+  }
+  .modal-box h3{
+    font-family:var(--font-heading);
+    font-size:16px;
+    color:var(--navy-deep);
+    margin:0 0 4px;
+  }
+  .modal-sub{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+  .modal-box ul{
+    list-style:none;
+    margin:0 0 18px;
+    padding:0;
+    text-align:left;
+  }
+  .modal-box ul li{
+    font-size:13px;
+    color:var(--text);
+    background:var(--surface-soft);
+    border-radius:8px;
+    padding:8px 12px;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .modal-box ul li::before{
+    content:"";
+    width:6px;height:6px;
+    border-radius:50%;
+    background:#B23B3B;
+    flex-shrink:0;
+  }
+  .modal-close{
+    width:100%;
+    padding:11px;
+    border:none;
+    border-radius:9px;
+    background:var(--navy);
+    color:#fff;
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .modal-close:hover{ background:var(--blue); }
+
+  input[type="text"], input[type="password"]{
+    width:100%;
+    padding:11px 13px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    font-size:14.5px;
+    font-family:var(--font-body);
+    color:var(--text);
+    background:var(--surface-soft);
+    margin-bottom:14px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input[type="text"]:focus, input[type="password"]:focus{
+    outline:none;
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(20,49,92,0.1);
+    background:var(--surface-card);
+  }
+  .modal-box label.field-label{ text-align:left; }
+  .modal-box .field-hint{
+    font-size:11px;
+    color:var(--muted);
+    margin:-10px 0 12px;
+    text-align:left;
+  }
+
+  .download-btn{
+    width:100%;
+    margin-top:12px;
+    padding:13px;
+    border:1.5px solid var(--gold);
+    border-radius:10px;
+    background:var(--surface-card);
+    color:#7A5A14;
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:all .15s ease;
+  }
+  .download-btn:hover{ background:var(--gold-soft); }
+  .download-btn svg{ width:16px;height:16px; }
+
+  /* ---------- Print / PDF layout ---------- */
+  #printQuote{ display:none; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    body{ padding:0; margin:0; background:#fff; }
+    #printQuote, #printQuote *{ visibility:visible; }
+    #printQuote{
+      display:block;
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      padding:0;
+    }
+  }
+
+  .print-page{
+    font-family:var(--font-body);
+    color:#22262E;
+    font-size:12.5px;
+    line-height:1.5;
+    padding:10px 4px;
+  }
+  .print-letterhead{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    border-bottom:2.5px solid var(--navy);
+    padding-bottom:14px;
+    margin-bottom:14px;
+  }
+  .print-letterhead img{ height:52px; width:auto; flex-shrink:0; }
+  .print-company-name{
+    font-family:var(--font-heading);
+    font-size:17px;
+    font-weight:800;
+    color:var(--navy-deep);
+    margin:0 0 3px;
+  }
+  .print-company-info div{ font-size:11px; color:var(--muted); }
+  .print-reference{
+    text-align:right;
+    font-size:11.5px;
+    font-style:italic;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .print-title{
+    font-family:var(--font-heading);
+    font-size:17px;
+    font-weight:800;
+    color:var(--navy-deep);
+    text-align:center;
+    letter-spacing:.03em;
+    margin:0 0 16px;
+  }
+  .print-meta-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px 18px;
+    margin-bottom:18px;
+    font-size:12px;
+  }
+  .print-meta-grid div strong{ color:var(--navy-deep); }
+  .print-section-title{
+    font-family:var(--font-heading);
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy-deep);
+    margin:18px 0 8px;
+  }
+  table.print-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:6px;
+    font-size:12px;
+  }
+  table.print-table th, table.print-table td{
+    border:1px solid var(--line);
+    padding:7px 10px;
+    text-align:left;
+  }
+  table.print-table th{
+    background:var(--surface-soft);
+    font-family:var(--font-heading);
+    font-weight:700;
+    color:var(--navy-deep);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  table.print-table td.amt{ text-align:right; font-weight:700; color:var(--navy-deep); }
+  ul.print-list{ margin:0 0 10px; padding-left:20px; }
+  ul.print-list li{ margin-bottom:4px; }
+  .print-footer{
+    margin-top:24px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+    font-size:10.5px;
+    color:var(--muted);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="badge">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9Np4mPB7R3hGdbPcWIA6x6Wd8aD0bmXePCnt4Q8mMIA&s=10" alt="Company logo" />
+    </div>
+    <div>
+      <h1>Motor Insurance Premium Calculator</h1>
+      <p>Get an instant premium estimate by cover type</p>
+    </div>
+  </div>
+
+  <!-- FORM SCREEN -->
+  <div class="card" id="form-screen">
+    <button class="info-btn" id="infoToggle" type="button" aria-label="How this is calculated">?</button>
+
+    <div class="info-panel" id="infoPanel">
+      <h4>How this works</h4>
+      <p>Third Party Premium = Base TP rate + Extra Seat Loading (seats above 5) + Extra TPPDL loading (limits above GHC 8,000).</p>
+      <p>Own Damage = Sum Insured × rate (rate depends on cover type and ICE/EV). Excess Buy Back (only for 100% cover) = 10% of Own Damage for private vehicles, 15% for commercial vehicles.</p>
+      <ul>
+        <li><strong>Third Party</strong> — Third Party Premium only</li>
+        <li><strong>Third Party Amplified</strong> — Third Party Premium + a fixed loading</li>
+        <li><strong>Fire &amp; Theft / Comprehensive</strong> — Own Damage + Third Party Premium (90% cover), or Own Damage + Excess Buy Back + Third Party Premium (100% cover)</li>
+      </ul>
+    </div>
+
+    <div class="step-nav">
+      <button class="back-arrow-btn" id="stepBackBtn" type="button" aria-label="Go back to previous step" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="step-progress">
+        <div class="step-dots" id="stepDots">
+          <span class="dot active" data-step="1"></span>
+          <span class="dot" data-step="2"></span>
+          <span class="dot" data-step="3"></span>
+        </div>
+        <div class="step-label" id="stepLabel">Step 1 of 3 — Vehicle Value</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Sum Insured + Engine Type -->
+    <div class="step-panel active" data-step="1">
+      <div class="section">
+        <p class="section-label">Sum Insured</p>
+        <label class="field-label" for="sumInsured">Sum Insured (GHC)</label>
+        <input type="number" id="sumInsured" min="0" placeholder="e.g. 150000">
+      </div>
+
+      <div class="section">
+        <p class="section-label">Engine Type</p>
+        <label class="field-label">Is this vehicle ICE or electric?</label>
+        <div class="pill-group" id="enginePills">
+          <label class="pill active" data-val="ICE"><input type="radio" name="engine" value="ICE" checked>ICE</label>
+          <label class="pill" data-val="EV"><input type="radio" name="engine" value="EV">EV</label>
+        </div>
+      </div>
+
+      <button class="calc-btn step-next-btn" type="button">
+        Continue
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- STEP 2: Vehicle Type + Seating & TPPDL -->
+    <div class="step-panel" data-step="2">
+      <div class="section">
+        <p class="section-label">Vehicle Type</p>
+        <label class="field-label" for="vtSelect">Vehicle Type</label>
+        <select id="vtSelect"></select>
+      </div>
+
+      <div class="section">
+        <p class="section-label">Seating &amp; Third Party Property Damage</p>
+        <div class="row2">
+          <div>
+            <label class="field-label" for="seats">Number of Seats</label>
+            <input type="number" id="seats" min="1" placeholder="e.g. 5">
+          </div>
+          <div>
+            <label class="field-label" for="tppdl">TPPDL</label>
+            <select id="tppdl"></select>
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn step-next-btn" type="button">
+        Continue
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- STEP 3: Cover Type + Calculate -->
+    <div class="step-panel" data-step="3">
+      <div class="section">
+        <p class="section-label">Cover Type</p>
+        <div class="cover-grid" id="coverGrid">
+          <label class="cover-card active" data-val="TP">
+            <input type="radio" name="cover" value="TP" checked>
+            <div class="name">Third Party</div>
+            <div class="desc">Legal minimum cover</div>
+          </label>
+          <label class="cover-card" data-val="TPA">
+            <input type="radio" name="cover" value="TPA">
+            <div class="name">Third Party Amplified</div>
+            <div class="desc">Third Party + extra liability cover</div>
+          </label>
+          <label class="cover-card" data-val="TPFT">
+            <input type="radio" name="cover" value="TPFT">
+            <div class="name">Third Party Fire &amp; Theft</div>
+            <div class="desc">Adds fire &amp; theft protection</div>
+          </label>
+          <label class="cover-card" data-val="COMP">
+            <input type="radio" name="cover" value="COMP">
+            <div class="name">Comprehensive</div>
+            <div class="desc">Full own-damage cover</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="section" id="discountSection" style="display:none;">
+        <p class="section-label">Discount <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:10.5px;">(optional — applies to own damage only)</span></p>
+        <select id="discount"></select>
+        <p id="discountMaxNote" style="font-size:11.5px;color:var(--muted);margin:6px 0 0;"></p>
+      </div>
+
+      <div class="section" id="discountLockedRow">
+        <div id="discountUnlockLink" style="font-size:12.5px;color:var(--blue);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;user-select:none;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/></svg>
+          Have a discount code?
+        </div>
+      </div>
+
+      <button class="calc-btn" id="calcBtn" type="button">
+        Calculate Premium
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v1.2M12 14.8V16M8 12h1.2M14.8 12H16" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="card" id="result-screen">
+    <button class="info-btn" id="infoToggleResult" type="button" aria-label="View calculation breakdown">?</button>
+    <div class="result-header">
+      <span class="tag" id="resultTag">Cover Type</span>
+      <h2 id="resultTitle">Premium Estimate</h2>
+    </div>
+
+    <div id="resultBody"></div>
+
+    <button class="download-btn" id="downloadBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7A5A14" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download Quote (PDF)
+    </button>
+    <button class="back-btn" id="backBtn" type="button" style="margin-top:10px;">&larr; Back to Calculator</button>
+  </div>
+
+  <p class="footnote">Estimate only — final premium is subject to underwriting review.</p>
+</div>
+
+<!-- ERROR POPUP -->
+<div class="modal-overlay" id="errorOverlay">
+  <div class="modal-box">
+    <div class="modal-icon">!</div>
+    <h3>Missing information</h3>
+    <p class="modal-sub">Please fix the following before calculating:</p>
+    <ul id="errorList"></ul>
+    <button class="modal-close" id="errorClose" type="button">Got it</button>
+  </div>
+</div>
+
+<!-- CUSTOMER DETAILS POPUP (asked only when Download is clicked) -->
+<div class="modal-overlay" id="custOverlay">
+  <div class="modal-box">
+    <h3>Customer Details</h3>
+    <p class="modal-sub">Enter these to generate the quote document</p>
+    <div>
+      <label class="field-label" for="custName">Name</label>
+      <input type="text" id="custName" placeholder="e.g. Kwame Mensah">
+      <label class="field-label" for="custAddress">Address</label>
+      <input type="text" id="custAddress" placeholder="e.g. East Legon, Accra">
+      <label class="field-label" for="custContact">Contact</label>
+      <input type="text" id="custContact" placeholder="e.g. 024 123 4567">
+      <p id="custErrorMsg" style="display:none;color:#B23B3B;font-size:12px;margin:-6px 0 12px;text-align:left;">Please fill in all three fields.</p>
+    </div>
+    <button class="modal-close" id="custConfirm" type="button">Generate Quote PDF</button>
+  </div>
+</div>
+
+<!-- DISCOUNT PASSWORD POPUP -->
+<div class="modal-overlay" id="discOverlay">
+  <div class="modal-box">
+    <div class="modal-icon" style="background:var(--gold-soft);color:#7A5A14;">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke-linecap="round"/></svg>
+    </div>
+    <h3>Enter Discount Code</h3>
+    <p class="modal-sub">Enter the password to unlock the discount field.</p>
+    <input type="password" id="discPassword" placeholder="Password">
+    <p id="discErrorMsg" style="display:none;color:#B23B3B;font-size:12px;margin:-6px 0 12px;text-align:left;">Incorrect password. Try again.</p>
+    <button class="modal-close" id="discConfirm" type="button">Unlock</button>
+  </div>
+</div>
+
+<!-- PRINTABLE QUOTE TEMPLATE (hidden on screen, shown only when printing) -->
+<div id="printQuote">
+  <div class="print-page">
+    <div class="print-letterhead">
+      <img src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance__ScaleWidthWzQwMF0.png" alt="Enterprise Insurance logo">
+      <div class="print-company-info">
+        <p class="print-company-name">Enterprise Insurance</p>
+        <div>Advantage Place Mayor Road, Ridge West, Accra, Ghana</div>
+        <div>+233 (0)30 2634777</div>
+        <div>info.insurance@enterprisegroup.com.gh &nbsp;|&nbsp; www.myenterprisegroup.io/gh-insurance/</div>
+      </div>
+    </div>
+
+    <div class="print-reference">Reference: <span id="pRef"></span></div>
+    <h2 class="print-title">MOTOR INSURANCE QUOTE</h2>
+
+    <div class="print-meta-grid">
+      <div><strong>Customer Name:</strong> <span id="pName"></span></div>
+      <div><strong>Contact:</strong> <span id="pContact"></span></div>
+      <div><strong>Address:</strong> <span id="pAddress"></span></div>
+      <div><strong>Tracking ID:</strong> <span id="pTrackId"></span></div>
+      <div><strong>Quote Date:</strong> <span id="pQuoteDate"></span></div>
+      <div><strong>Policy Start Date:</strong> <span id="pStart"></span></div>
+      <div><strong>Policy End Date:</strong> <span id="pEnd"></span></div>
+    </div>
+
+    <p class="print-section-title">Vehicle Details</p>
+    <table class="print-table">
+      <tr><td>Vehicle Type</td><td id="pVehType"></td></tr>
+      <tr><td>Engine Type</td><td id="pEngine"></td></tr>
+      <tr><td>Vehicle Value (Sum Insured)</td><td id="pSI"></td></tr>
+      <tr><td>Number of Seats</td><td id="pSeats"></td></tr>
+      <tr><td>Third Party Property Damage Limit</td><td id="pTppdl"></td></tr>
+    </table>
+
+    <p class="print-section-title">Insurance Package</p>
+    <table class="print-table">
+      <thead><tr><th>Cover Type</th><th>Coverage Description</th><th>Amount (GHC)</th></tr></thead>
+      <tbody id="pPackageRows"></tbody>
+    </table>
+
+    <p class="print-section-title">Subjectivities</p>
+    <ul class="print-list" id="pSubjectivities"></ul>
+
+    <div id="pEvSection"></div>
+
+    <div class="print-footer">This is a computer-generated quote and does not require a signature. Estimate only — final premium is subject to underwriting review.</div>
+  </div>
+</div>
+
+<script>
+// ---------- Vehicle Type data ----------
+// type: Private / Commercial | TP: base third party premium
+// RC_ICE/RC_EV: comprehensive rate | RF_ICE/RF_EV: fire & theft rate | ES: extra seat loading rate
+const VT_DATA = {
+  "Private Individual":        { type:"Private",    TP:557,  RC_ICE:0.0500, RC_EV:0.0625, RF_ICE:0.0100, RF_EV:0.0125, ES:15.00 },
+  "Private Corporate":         { type:"Commercial",  TP:557,  RC_ICE:0.0600, RC_EV:0.0750, RF_ICE:0.0150, RF_EV:0.0188, ES:15.00 },
+  "Taxi":                      { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
+  "Hiring Cars":                { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
+  "Uber / Ride Hailing":        { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
+  "Mini Bus":                   { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
+  "Maxi Bus":                   { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
+  "Motor Cycle":                { type:"Commercial",  TP:331,  RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
+  "Motor Tricycle / Quadricycle": { type:"Commercial", TP:431, RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
+  "Ambulance / Hearse":         { type:"Commercial",  TP:733,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0150, RF_EV:0.0188, ES:15.00 },
+  "Own Goods (Z.300)":          { type:"Commercial",  TP:761,  RC_ICE:0.0400, RC_EV:0.0500, RF_ICE:0.0100, RF_EV:0.0125, ES:25.00 },
+  "Art / Tankers":               { type:"Commercial",  TP:1052, RC_ICE:0.0800, RC_EV:0.1000, RF_ICE:0.0200, RF_EV:0.0250, ES:25.00 },
+  "Gen. Cartage (Z.301)":       { type:"Commercial",  TP:893,  RC_ICE:0.0600, RC_EV:0.0750, RF_ICE:0.0150, RF_EV:0.0188, ES:25.00 },
+  "Z.802 On Site":              { type:"Commercial",  TP:431,  RC_ICE:0.0150, RC_EV:0.0188, RF_ICE:0.0025, RF_EV:0.0031, ES:25.00 },
+  "Z.802 On Road":              { type:"Commercial",  TP:733,  RC_ICE:0.0300, RC_EV:0.0375, RF_ICE:0.0075, RF_EV:0.0094, ES:25.00 },
+  "GW1 Class 1 (Fitters)":      { type:"Commercial",  TP:607,  RC_ICE:0.0500, RC_EV:0.0625, RF_ICE:0.0075, RF_EV:0.0094, ES:25.00 },
+  "GW1 Class 2 (Garages)":      { type:"Commercial",  TP:744,  RC_ICE:0.0600, RC_EV:0.0750, RF_ICE:0.0100, RF_EV:0.0125, ES:25.00 },
+  "GW1 Class 3 (Clearers)":     { type:"Commercial",  TP:920,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0150, RF_EV:0.0188, ES:25.00 }
+};
+
+const COVER_NAMES = {
+  TP:"Third Party",
+  TPA:"Third Party Amplified",
+  TPFT:"Third Party Fire & Theft",
+  COMP:"Comprehensive"
+};
+
+// ---------- Populate dropdowns ----------
+const vtSelect = document.getElementById('vtSelect');
+Object.keys(VT_DATA).forEach(name=>{
+  const opt = document.createElement('option');
+  opt.value = name; opt.textContent = name;
+  vtSelect.appendChild(opt);
+});
+
+const tppdlSelect = document.getElementById('tppdl');
+for(let val=8000; val<=30000; val+=1000){
+  const opt = document.createElement('option');
+  opt.value = val;
+  opt.textContent = val===8000 ? "Normal (GHC 8,000)" : "GHC " + val.toLocaleString();
+  tppdlSelect.appendChild(opt);
+}
+
+// ---------- Discount dropdown (separate tier lists by vehicle category) ----------
+const DISCOUNT_TIERS_PRIVATE = [5,10,15,20,25,30,35,45,50];
+const DISCOUNT_TIERS_COMMERCIAL = [5,10,15,20,25];
+const DISCOUNT_MAX_PRIVATE = 50;
+const DISCOUNT_MAX_COMMERCIAL = 25;
+const discountSelectEl = document.getElementById('discount');
+const discountMaxNote = document.getElementById('discountMaxNote');
+
+function currentDiscountMax(){
+  const vt = VT_DATA[vtSelect.value];
+  const isPrivate = vt && vt.type === "Private";
+  return isPrivate ? DISCOUNT_MAX_PRIVATE : DISCOUNT_MAX_COMMERCIAL;
+}
+
+function populateDiscountOptions(){
+  const vt = VT_DATA[vtSelect.value];
+  const isPrivate = vt && vt.type === "Private";
+  const tiers = isPrivate ? DISCOUNT_TIERS_PRIVATE : DISCOUNT_TIERS_COMMERCIAL;
+  const max = isPrivate ? DISCOUNT_MAX_PRIVATE : DISCOUNT_MAX_COMMERCIAL;
+  const prevValue = discountSelectEl.value;
+
+  discountSelectEl.innerHTML = '';
+  const noneOpt = document.createElement('option');
+  noneOpt.value = '';
+  noneOpt.textContent = 'No discount';
+  discountSelectEl.appendChild(noneOpt);
+
+  tiers.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v + '%';
+    discountSelectEl.appendChild(opt);
+  });
+
+  const stillValid = Array.from(discountSelectEl.options).some(o => o.value === prevValue);
+  discountSelectEl.value = stillValid ? prevValue : '';
+
+  if(discountMaxNote){
+    discountMaxNote.textContent = `Maximum discount for this vehicle category is ${max}%.`;
+  }
+}
+populateDiscountOptions();
+vtSelect.addEventListener('change', populateDiscountOptions);
+
+// ---------- Pill / card selection styling ----------
+document.querySelectorAll('.pill-group .pill').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('#enginePills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    p.querySelector('input').checked = true;
+  });
+});
+document.querySelectorAll('#coverGrid .cover-card').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('#coverGrid .cover-card').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    c.querySelector('input').checked = true;
+  });
+});
+
+// ---------- Info panel toggle ----------
+document.getElementById('infoToggle').addEventListener('click', ()=>{
+  const p = document.getElementById('infoPanel');
+  p.style.display = p.style.display === 'block' ? 'none' : 'block';
+});
+document.getElementById('infoToggleResult').addEventListener('click', ()=>{
+  const b = document.getElementById('breakdownPanel');
+  if(b) b.style.display = b.style.display === 'block' ? 'none' : 'block';
+});
+
+// ---------- Discount lock ----------
+const DISCOUNT_PASSWORD = "polk,m";
+const discOverlay = document.getElementById('discOverlay');
+const discountSection = document.getElementById('discountSection');
+const discountLockedRow = document.getElementById('discountLockedRow');
+const discPasswordInput = document.getElementById('discPassword');
+const discErrorMsg = document.getElementById('discErrorMsg');
+
+document.getElementById('discountUnlockLink').addEventListener('click', ()=>{
+  discPasswordInput.value = '';
+  discErrorMsg.style.display = 'none';
+  discOverlay.classList.add('show');
+  setTimeout(()=> discPasswordInput.focus(), 50);
+});
+discOverlay.addEventListener('click', (e)=>{
+  if(e.target === discOverlay) discOverlay.classList.remove('show');
+});
+function tryUnlockDiscount(){
+  if(discPasswordInput.value === DISCOUNT_PASSWORD){
+    populateDiscountOptions();
+    discountSection.style.display = 'block';
+    discountLockedRow.style.display = 'none';
+    discOverlay.classList.remove('show');
+  } else {
+    discErrorMsg.style.display = 'block';
+  }
+}
+document.getElementById('discConfirm').addEventListener('click', tryUnlockDiscount);
+discPasswordInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') tryUnlockDiscount();
+});
+
+// ---------- Formatting ----------
+// Always show exactly two decimal places instead of rounding to whole numbers.
+function fmt(n){
+  return n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ---------- Error modal helper ----------
+function showErrorModal(errors){
+  const list = document.getElementById('errorList');
+  list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+  document.getElementById('errorOverlay').classList.add('show');
+}
+
+// ---------- Step wizard ----------
+const STEP_LABELS = {
+  1: "Step 1 of 3 — Vehicle Value",
+  2: "Step 2 of 3 — Vehicle & Seating",
+  3: "Step 3 of 3 — Cover & Quote"
+};
+let currentStep = 1;
+const stepBackBtn = document.getElementById('stepBackBtn');
+const stepDots = document.querySelectorAll('#stepDots .dot');
+const stepLabelEl = document.getElementById('stepLabel');
+
+function showStep(n){
+  currentStep = n;
+  document.querySelectorAll('.step-panel').forEach(p=>{
+    p.classList.toggle('active', parseInt(p.dataset.step) === n);
+  });
+  stepDots.forEach(d=>{
+    const s = parseInt(d.dataset.step);
+    d.classList.toggle('active', s === n);
+    d.classList.toggle('done', s < n);
+  });
+  stepLabelEl.textContent = STEP_LABELS[n];
+  stepBackBtn.disabled = n === 1;
+  document.getElementById('form-screen').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Only validate the fields that belong to a given step, so people aren't
+// blocked by a field they haven't reached yet.
+function validateStep(step){
+  const errors = [];
+  if(step === 1){
+    const raw = document.getElementById('sumInsured').value.trim();
+    const SI = parseFloat(raw);
+    if(raw === '' || isNaN(SI)) errors.push("Sum Insured is required");
+    else if(SI <= 0) errors.push("Sum Insured must be greater than 0");
+  }
+  if(step === 2){
+    const raw = document.getElementById('seats').value.trim();
+    const seats = parseInt(raw);
+    if(raw === '' || isNaN(seats)) errors.push("Number of Seats is required");
+    else if(seats <= 0) errors.push("Number of Seats must be at least 1");
+  }
+  return errors;
+}
+
+document.querySelectorAll('.step-next-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const step = parseInt(btn.closest('.step-panel').dataset.step);
+    const errors = validateStep(step);
+    if(errors.length > 0){
+      showErrorModal(errors);
+      return;
+    }
+    showStep(step + 1);
+  });
+});
+
+stepBackBtn.addEventListener('click', ()=>{
+  if(currentStep > 1) showStep(currentStep - 1);
+});
+
+// ---------- Calculate ----------
+document.getElementById('calcBtn').addEventListener('click', ()=>{
+  const SI = parseFloat(document.getElementById('sumInsured').value);
+  const seats = parseInt(document.getElementById('seats').value);
+  const tppdl = parseInt(document.getElementById('tppdl').value);
+  const engine = document.querySelector('input[name="engine"]:checked').value;
+  const cover = document.querySelector('input[name="cover"]:checked').value;
+  const vtName = vtSelect.value;
+  const vt = VT_DATA[vtName];
+  const discountRaw = discountSection.style.display === 'none' ? '' : document.getElementById('discount').value.trim();
+  const D = discountRaw === '' ? 0 : parseFloat(discountRaw);
+
+  const errors = [];
+  if(isNaN(SI) || document.getElementById('sumInsured').value.trim() === ''){
+    errors.push("Sum Insured is required");
+  } else if(SI <= 0){
+    errors.push("Sum Insured must be greater than 0");
+  }
+
+  if(isNaN(seats) || document.getElementById('seats').value.trim() === ''){
+    errors.push("Number of Seats is required");
+  } else if(seats <= 0){
+    errors.push("Number of Seats must be at least 1");
+  }
+
+  if(!vt){
+    errors.push("Vehicle Type must be selected");
+  }
+  if(isNaN(tppdl)){
+    errors.push("TPPDL must be selected");
+  }
+  if(!engine){
+    errors.push("Engine Type (ICE or EV) must be selected");
+  }
+  if(!cover){
+    errors.push("Cover Type must be selected");
+  }
+  if(discountRaw !== '' && vt){
+    const maxDiscount = vt.type === "Private" ? DISCOUNT_MAX_PRIVATE : DISCOUNT_MAX_COMMERCIAL;
+    if(isNaN(D) || D < 0 || D > maxDiscount){
+      errors.push(`Discount must be between 0% and ${maxDiscount}% for this vehicle type`);
+    }
+  }
+
+  if(errors.length > 0){
+    showErrorModal(errors);
+    return;
+  }
+
+  const isPrivate = vt.type === "Private";
+  const xPct = isPrivate ? 0.01 : 0.02;
+  const ESL = seats > 5 ? (seats - 5) * vt.ES : 0;
+  const XTPPDL = (tppdl - 8000) * xPct;
+  const TPP = vt.TP + ESL + XTPPDL;
+  const hasDiscount = D > 0;
+
+  const resultBody = document.getElementById('resultBody');
+  document.getElementById('resultTag').textContent = vtName + " · " + engine;
+  document.getElementById('resultTitle').textContent = COVER_NAMES[cover];
+
+  let html = "";
+  let breakdownHtml = `<div><span>Base Third Party (TP)</span><span>GHC ${fmt(vt.TP)}</span></div>
+    <div><span>Extra Seat Loading (ESL)</span><span>GHC ${fmt(ESL)}</span></div>
+    <div><span>Extra TPPDL Loading</span><span>GHC ${fmt(XTPPDL)}</span></div>
+    <div><span>Third Party Premium (TPP)</span><span>GHC ${fmt(TPP)}</span></div>`;
+
+  if(cover === "TP"){
+    html = `<div class="amount-card highlight">
+      <div class="label">Third Party Premium</div>
+      <div class="amount"><span class="currency">GHC</span>${fmt(TPP)}</div>
+    </div>`;
+  }
+  else if(cover === "TPA"){
+    const loading = isPrivate ? 100 : 150;
+    const total = TPP + loading;
+    breakdownHtml += `<div><span>Amplified Loading</span><span>GHC ${fmt(loading)}</span></div>`;
+    html = `<div class="amount-card highlight">
+      <div class="label">Third Party Amplified Premium</div>
+      <div class="amount"><span class="currency">GHC</span>${fmt(total)}</div>
+    </div>`;
+  }
+  else if(cover === "TPFT" || cover === "COMP"){
+    const R = cover === "TPFT"
+      ? (engine === "ICE" ? vt.RF_ICE : vt.RF_EV)
+      : (engine === "ICE" ? vt.RC_ICE : vt.RC_EV);
+    const ODBP = SI * R;
+    const EBBpct = isPrivate ? 0.10 : 0.15;
+    const EBB = ODBP * EBBpct;
+    const discountAmt = ODBP * (D / 100);
+
+    // Original (no discount)
+    const orig90  = ODBP + TPP;
+    const orig100 = ODBP + EBB + TPP;
+    // Discounted
+    const disc90  = orig90  - discountAmt;
+    const disc100 = orig100 - discountAmt;
+
+    breakdownHtml += `<div><span>Rate Applied (${cover==="TPFT"?"RF":"RC"})</span><span>${(R*100).toFixed(2)}%</span></div>
+      <div><span>Own Damage Basic Premium (ODBP)</span><span>GHC ${fmt(ODBP)}</span></div>
+      <div><span>Excess Buy Back (${(EBBpct*100).toFixed(0)}%)</span><span>GHC ${fmt(EBB)}</span></div>`;
+    if(hasDiscount){
+      breakdownHtml += `<div style="color:#1F7A4D;font-weight:600;"><span>Discount (${D}% × ODBP)</span><span>− GHC ${fmt(discountAmt)}</span></div>`;
+    }
+
+    const discountBadge = hasDiscount
+      ? `<span style="display:inline-block;background:#E8F5EE;color:#1F7A4D;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;">${D}% OFF</span>`
+      : '';
+
+    if(hasDiscount){
+      html = `
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Original Quote</div>
+        <div class="amount-card" style="opacity:.65;margin-bottom:6px;">
+          <div class="label">90% Cover</div>
+          <div class="amount" style="font-size:20px;text-decoration:line-through;"><span class="currency" style="font-size:13px;">GHC</span>${fmt(orig90)}</div>
+        </div>
+        <div class="amount-card" style="opacity:.65;margin-bottom:18px;">
+          <div class="label">100% Cover</div>
+          <div class="amount" style="font-size:20px;text-decoration:line-through;"><span class="currency" style="font-size:13px;">GHC</span>${fmt(orig100)}</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Discounted Quote ${discountBadge}</div>
+        <div class="amount-card">
+          <div class="label">90% Cover</div>
+          <div class="amount"><span class="currency">GHC</span>${fmt(disc90)}</div>
+        </div>
+        <div class="amount-card highlight">
+          <div class="label">100% Cover</div>
+          <div class="amount"><span class="currency">GHC</span>${fmt(disc100)}</div>
+        </div>`;
+    } else {
+      html = `
+        <div class="amount-card">
+          <div class="label">90% Cover</div>
+          <div class="amount"><span class="currency">GHC</span>${fmt(orig90)}</div>
+        </div>
+        <div class="amount-card highlight">
+          <div class="label">100% Cover</div>
+          <div class="amount"><span class="currency">GHC</span>${fmt(orig100)}</div>
+        </div>`;
+    }
+  }
+
+  resultBody.innerHTML = html +
+    `<div class="breakdown-toggle" id="breakdownToggle">View calculation breakdown ▾</div>
+     <div class="breakdown" id="breakdownPanel">${breakdownHtml}</div>`;
+
+  document.getElementById('breakdownToggle').addEventListener('click', ()=>{
+    const b = document.getElementById('breakdownPanel');
+    b.style.display = b.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.getElementById('form-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'block';
+  document.getElementById('infoPanel').style.display = 'none';
+
+  // ---------- Store data needed for the printable quote ----------
+  const packageRows = [];
+  if(cover === "TP"){
+    packageRows.push({ label:"Third Party", desc:"Legal minimum cover", amount: TPP });
+  } else if(cover === "TPA"){
+    const loading = isPrivate ? 100 : 150;
+    packageRows.push({ label:"Third Party Amplified", desc:"Third Party + extra liability cover", amount: TPP + loading });
+  } else if(cover === "TPFT" || cover === "COMP"){
+    const R = cover === "TPFT" ? (engine === "ICE" ? vt.RF_ICE : vt.RF_EV) : (engine === "ICE" ? vt.RC_ICE : vt.RC_EV);
+    const ODBP = SI * R;
+    const EBBpct = isPrivate ? 0.10 : 0.15;
+    const EBB = ODBP * EBBpct;
+    const discountAmt = ODBP * (D / 100);
+    const final90 = ODBP + TPP - discountAmt;
+    const final100 = ODBP + EBB + TPP - discountAmt;
+    const coverLabel = COVER_NAMES[cover];
+    const discNote = hasDiscount ? ` (${D}% discount applied)` : "";
+    packageRows.push({ label: coverLabel, desc: "90% Cover" + discNote, amount: final90 });
+    packageRows.push({ label: coverLabel, desc: "100% Cover" + discNote, amount: final100 });
+  }
+
+  window.lastQuote = {
+    vtName, engine, coverLabel: COVER_NAMES[cover], SI, seats, tppdl, packageRows
+  };
+});
+
+// ---------- Back button ----------
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('form-screen').style.display = 'block';
+});
+
+// ---------- Error popup dismiss ----------
+const errorOverlay = document.getElementById('errorOverlay');
+document.getElementById('errorClose').addEventListener('click', ()=>{
+  errorOverlay.classList.remove('show');
+});
+errorOverlay.addEventListener('click', (e)=>{
+  if(e.target === errorOverlay) errorOverlay.classList.remove('show');
+});
+
+// ---------- Download PDF flow ----------
+const custOverlay = document.getElementById('custOverlay');
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  document.getElementById('custName').value = '';
+  document.getElementById('custAddress').value = '';
+  document.getElementById('custContact').value = '';
+  document.getElementById('custErrorMsg').style.display = 'none';
+  custOverlay.classList.add('show');
+});
+custOverlay.addEventListener('click', (e)=>{
+  if(e.target === custOverlay) custOverlay.classList.remove('show');
+});
+
+function fmtDate(d){
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return d.getDate().toString().padStart(2,'0') + " " + months[d.getMonth()] + " " + d.getFullYear();
+}
+function randDigits(n){
+  let s = '';
+  for(let i=0;i<n;i++) s += Math.floor(Math.random()*10);
+  return s;
+}
+
+const EV_TERMS_SUMMARY = [
+  "Battery: cover applies to accidental damage to the battery only; wear, tear and internal mechanical failure are excluded.",
+  "ADAS: repair/recalibration of Advanced Driver Assistance Systems after an accident is covered, provided manufacturer software/maintenance guidance was followed.",
+  "OTA Updates: losses linked to software updates not approved by the manufacturer are excluded.",
+  "Unauthorized modifications or non-compliance with manufacturer/safety standards are excluded.",
+  "Otherwise subject to the terms, conditions and exceptions of our Motor Comprehensive Insurance Policy."
+];
+
+document.getElementById('custConfirm').addEventListener('click', ()=>{
+  const name = document.getElementById('custName').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const contact = document.getElementById('custContact').value.trim();
+
+  if(!name || !address || !contact){
+    document.getElementById('custErrorMsg').style.display = 'block';
+    return;
+  }
+
+  const q = window.lastQuote;
+  if(!q) return;
+
+  const today = new Date();
+  const oneYear = new Date(today);
+  oneYear.setFullYear(oneYear.getFullYear() + 1);
+  oneYear.setDate(oneYear.getDate() - 1);
+
+  document.getElementById('pRef').textContent = "Q" + randDigits(5);
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pAddress').textContent = address;
+  document.getElementById('pContact').textContent = contact;
+  document.getElementById('pTrackId').textContent = randDigits(10);
+  document.getElementById('pQuoteDate').textContent = fmtDate(today);
+  document.getElementById('pStart').textContent = fmtDate(today);
+  document.getElementById('pEnd').textContent = fmtDate(oneYear);
+
+  document.getElementById('pVehType').textContent = q.vtName;
+  document.getElementById('pEngine').textContent = q.engine === 'ICE' ? 'ICE (Internal Combustion Engine)' : 'EV (Electric Vehicle)';
+  document.getElementById('pSI').textContent = "GHC " + fmt(q.SI);
+  document.getElementById('pSeats').textContent = q.seats;
+  document.getElementById('pTppdl').textContent = "GHC " + fmt(q.tppdl);
+
+  document.getElementById('pPackageRows').innerHTML = q.packageRows.map(r =>
+    `<tr><td>${r.label}</td><td>${r.desc}</td><td class="amt">${fmt(r.amount)}</td></tr>`
+  ).join('');
+
+  document.getElementById('pSubjectivities').innerHTML = `
+    <li>The Third Party Property Damage indemnity limit is GHC ${fmt(q.tppdl)}.</li>
+    <li>The Personal Accident Benefit for the driver is GHC 7,000.00.</li>
+    <li>Coverage will commence upon receipt of full premium payment.</li>
+    <li>Final premium may vary based on additional coverage selection.</li>
+    <li>This quote is subject to our standard policy wording.</li>
+  `;
+
+  const evSection = document.getElementById('pEvSection');
+  if(q.engine === 'ICE'){
+    evSection.innerHTML = `
+      <p class="print-section-title">Electric Vehicles Exclusion Clause</p>
+      <p>For the purposes of this policy, an Electric Vehicle (EV) means a vehicle that is solely propelled by electric power and does not contain an internal combustion engine. It is hereby declared and agreed that losses related to the use of Electric Vehicles (EVs), as defined above, are excluded under this policy.</p>
+    `;
+  } else {
+    evSection.innerHTML = `
+      <p class="print-section-title">Electric Vehicle Terms &amp; Conditions (Summary)</p>
+      <ul class="print-list">${EV_TERMS_SUMMARY.map(t => `<li>${t}</li>`).join('')}</ul>
+    `;
+  }
+
+  custOverlay.classList.remove('show');
+  setTimeout(()=> window.print(), 150);
+});
+</script>
+</body>
+</html>
