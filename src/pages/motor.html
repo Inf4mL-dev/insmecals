@@ -639,24 +639,35 @@
           <span class="dot" data-step="2"></span>
           <span class="dot" data-step="3"></span>
         </div>
-        <div class="step-label" id="stepLabel">Step 1 of 3 — Vehicle Value</div>
+        <div class="step-label" id="stepLabel">Step 1 of 3 — Cover Type</div>
       </div>
     </div>
 
-    <!-- STEP 1: Sum Insured + Engine Type -->
+    <!-- STEP 1: Cover Type -->
     <div class="step-panel active" data-step="1">
       <div class="section">
-        <p class="section-label">Sum Insured</p>
-        <label class="field-label" for="sumInsured">Sum Insured (GHC)</label>
-        <input type="number" id="sumInsured" min="0" placeholder="e.g. 150000">
-      </div>
-
-      <div class="section">
-        <p class="section-label">Engine Type</p>
-        <label class="field-label">Is this vehicle ICE or electric?</label>
-        <div class="pill-group" id="enginePills">
-          <label class="pill active" data-val="ICE"><input type="radio" name="engine" value="ICE" checked>ICE</label>
-          <label class="pill" data-val="EV"><input type="radio" name="engine" value="EV">EV</label>
+        <p class="section-label">Cover Type</p>
+        <div class="cover-grid" id="coverGrid">
+          <label class="cover-card active" data-val="TP">
+            <input type="radio" name="cover" value="TP" checked>
+            <div class="name">Third Party</div>
+            <div class="desc">Legal minimum cover</div>
+          </label>
+          <label class="cover-card" data-val="TPA">
+            <input type="radio" name="cover" value="TPA">
+            <div class="name">Third Party Amplified</div>
+            <div class="desc">Third Party + extra liability cover</div>
+          </label>
+          <label class="cover-card" data-val="TPFT">
+            <input type="radio" name="cover" value="TPFT">
+            <div class="name">Third Party Fire &amp; Theft</div>
+            <div class="desc">Adds fire &amp; theft protection</div>
+          </label>
+          <label class="cover-card" data-val="COMP">
+            <input type="radio" name="cover" value="COMP">
+            <div class="name">Comprehensive</div>
+            <div class="desc">Full own-damage cover</div>
+          </label>
         </div>
       </div>
 
@@ -694,31 +705,20 @@
       </button>
     </div>
 
-    <!-- STEP 3: Cover Type + Calculate -->
+    <!-- STEP 3: Sum Insured (conditional) + Engine Type + Discount + Calculate -->
     <div class="step-panel" data-step="3">
+      <div class="section" id="sumInsuredSection">
+        <p class="section-label">Sum Insured</p>
+        <label class="field-label" for="sumInsured">Sum Insured (GHC)</label>
+        <input type="number" id="sumInsured" min="0" placeholder="e.g. 150000">
+      </div>
+
       <div class="section">
-        <p class="section-label">Cover Type</p>
-        <div class="cover-grid" id="coverGrid">
-          <label class="cover-card active" data-val="TP">
-            <input type="radio" name="cover" value="TP" checked>
-            <div class="name">Third Party</div>
-            <div class="desc">Legal minimum cover</div>
-          </label>
-          <label class="cover-card" data-val="TPA">
-            <input type="radio" name="cover" value="TPA">
-            <div class="name">Third Party Amplified</div>
-            <div class="desc">Third Party + extra liability cover</div>
-          </label>
-          <label class="cover-card" data-val="TPFT">
-            <input type="radio" name="cover" value="TPFT">
-            <div class="name">Third Party Fire &amp; Theft</div>
-            <div class="desc">Adds fire &amp; theft protection</div>
-          </label>
-          <label class="cover-card" data-val="COMP">
-            <input type="radio" name="cover" value="COMP">
-            <div class="name">Comprehensive</div>
-            <div class="desc">Full own-damage cover</div>
-          </label>
+        <p class="section-label">Engine Type</p>
+        <label class="field-label">Is this vehicle ICE or electric?</label>
+        <div class="pill-group" id="enginePills">
+          <label class="pill active" data-val="ICE"><input type="radio" name="engine" value="ICE" checked>ICE</label>
+          <label class="pill" data-val="EV"><input type="radio" name="engine" value="EV">EV</label>
         </div>
       </div>
 
@@ -835,7 +835,7 @@
     <table class="print-table">
       <tr><td>Vehicle Type</td><td id="pVehType"></td></tr>
       <tr><td>Engine Type</td><td id="pEngine"></td></tr>
-      <tr><td>Vehicle Value (Sum Insured)</td><td id="pSI"></td></tr>
+      <tr id="pSIRow"><td>Vehicle Value (Sum Insured)</td><td id="pSI"></td></tr>
       <tr><td>Number of Seats</td><td id="pSeats"></td></tr>
       <tr><td>Third Party Property Damage Limit</td><td id="pTppdl"></td></tr>
     </table>
@@ -960,8 +960,46 @@ document.querySelectorAll('#coverGrid .cover-card').forEach(c=>{
     document.querySelectorAll('#coverGrid .cover-card').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
     c.querySelector('input').checked = true;
+    syncCoverDependentFields();
   });
 });
+
+// ---------- Cover-dependent fields on Step 3 ----------
+// Sum Insured and the Discount only affect the Own Damage calculation, which
+// runs for Fire & Theft and Comprehensive only. For Third Party and Third Party
+// Amplified both are hidden and the Sum Insured value is cleared so a stale
+// number can never reach the calculation or the printed quote.
+function coverNeedsSumInsured(){
+  const el = document.querySelector('input[name="cover"]:checked');
+  const cover = el ? el.value : '';
+  return cover === 'TPFT' || cover === 'COMP';
+}
+
+function syncCoverDependentFields(){
+  const needs = coverNeedsSumInsured();
+  const siSection = document.getElementById('sumInsuredSection');
+  const siInput = document.getElementById('sumInsured');
+  const discSection = document.getElementById('discountSection');
+  const discLocked = document.getElementById('discountLockedRow');
+
+  siSection.style.display = needs ? 'block' : 'none';
+  if(!needs) siInput.value = '';
+
+  if(!needs){
+    // Hide both the unlock link and the unlocked selector.
+    discSection.style.display = 'none';
+    discLocked.style.display = 'none';
+  } else {
+    // Restore whichever state the discount was in: unlocked or still locked.
+    if(discountUnlocked){
+      discSection.style.display = 'block';
+      discLocked.style.display = 'none';
+    } else {
+      discSection.style.display = 'none';
+      discLocked.style.display = 'block';
+    }
+  }
+}
 
 // ---------- Info panel toggle ----------
 document.getElementById('infoToggle').addEventListener('click', ()=>{
@@ -980,6 +1018,7 @@ const discountSection = document.getElementById('discountSection');
 const discountLockedRow = document.getElementById('discountLockedRow');
 const discPasswordInput = document.getElementById('discPassword');
 const discErrorMsg = document.getElementById('discErrorMsg');
+let discountUnlocked = false;
 
 document.getElementById('discountUnlockLink').addEventListener('click', ()=>{
   discPasswordInput.value = '';
@@ -992,6 +1031,7 @@ discOverlay.addEventListener('click', (e)=>{
 });
 function tryUnlockDiscount(){
   if(discPasswordInput.value === DISCOUNT_PASSWORD){
+    discountUnlocked = true;
     populateDiscountOptions();
     discountSection.style.display = 'block';
     discountLockedRow.style.display = 'none';
@@ -1020,9 +1060,9 @@ function showErrorModal(errors){
 
 // ---------- Step wizard ----------
 const STEP_LABELS = {
-  1: "Step 1 of 3 — Vehicle Value",
+  1: "Step 1 of 3 — Cover Type",
   2: "Step 2 of 3 — Vehicle & Seating",
-  3: "Step 3 of 3 — Cover & Quote"
+  3: "Step 3 of 3 — Vehicle Value & Quote"
 };
 let currentStep = 1;
 const stepBackBtn = document.getElementById('stepBackBtn');
@@ -1049,10 +1089,8 @@ function showStep(n){
 function validateStep(step){
   const errors = [];
   if(step === 1){
-    const raw = document.getElementById('sumInsured').value.trim();
-    const SI = parseFloat(raw);
-    if(raw === '' || isNaN(SI)) errors.push("Sum Insured is required");
-    else if(SI <= 0) errors.push("Sum Insured must be greater than 0");
+    const cover = document.querySelector('input[name="cover"]:checked');
+    if(!cover) errors.push("Cover Type must be selected");
   }
   if(step === 2){
     const raw = document.getElementById('seats').value.trim();
@@ -1092,10 +1130,13 @@ document.getElementById('calcBtn').addEventListener('click', ()=>{
   const D = discountRaw === '' ? 0 : parseFloat(discountRaw);
 
   const errors = [];
-  if(isNaN(SI) || document.getElementById('sumInsured').value.trim() === ''){
-    errors.push("Sum Insured is required");
-  } else if(SI <= 0){
-    errors.push("Sum Insured must be greater than 0");
+  const needsSI = (cover === 'TPFT' || cover === 'COMP');
+  if(needsSI){
+    if(isNaN(SI) || document.getElementById('sumInsured').value.trim() === ''){
+      errors.push("Sum Insured is required");
+    } else if(SI <= 0){
+      errors.push("Sum Insured must be greater than 0");
+    }
   }
 
   if(isNaN(seats) || document.getElementById('seats').value.trim() === ''){
@@ -1255,9 +1296,13 @@ document.getElementById('calcBtn').addEventListener('click', ()=>{
   }
 
   window.lastQuote = {
-    vtName, engine, coverLabel: COVER_NAMES[cover], SI, seats, tppdl, packageRows
+    vtName, engine, coverLabel: COVER_NAMES[cover], SI, seats, tppdl, packageRows,
+    showSI: needsSI
   };
 });
+
+// Set the correct Step 3 state for whichever cover is selected on load.
+syncCoverDependentFields();
 
 // ---------- Back button ----------
 document.getElementById('backBtn').addEventListener('click', ()=>{
@@ -1335,7 +1380,16 @@ document.getElementById('custConfirm').addEventListener('click', ()=>{
 
   document.getElementById('pVehType').textContent = q.vtName;
   document.getElementById('pEngine').textContent = q.engine === 'ICE' ? 'ICE (Internal Combustion Engine)' : 'EV (Electric Vehicle)';
-  document.getElementById('pSI').textContent = "GHC " + fmt(q.SI);
+  // Third Party and Third Party Amplified carry no Sum Insured, so the row is
+  // dropped from the printed quote entirely rather than shown as blank or N/A.
+  const pSIRow = document.getElementById('pSIRow');
+  if(q.showSI){
+    pSIRow.style.display = '';
+    document.getElementById('pSI').textContent = "GHC " + fmt(q.SI);
+  } else {
+    pSIRow.style.display = 'none';
+    document.getElementById('pSI').textContent = '';
+  }
   document.getElementById('pSeats').textContent = q.seats;
   document.getElementById('pTppdl').textContent = "GHC " + fmt(q.tppdl);
 
