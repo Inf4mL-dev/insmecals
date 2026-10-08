@@ -3,37 +3,1023 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SME Insure — Coming Soon | Enterprise Insurance</title>
+<title>SME Insure — Premium Calculator | Enterprise Insurance</title>
 <script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/shared.css">
 <style>
-  *{box-sizing:border-box;}
-  body{
-    margin:0; min-height:100vh; display:flex; flex-direction:column;
-    font-family:var(--font-body); color:var(--ink); background:var(--surface);
+:root{
+  /* Local names aliased to the shared theme tokens (same pattern as momoinsure.html) */
+  --brand-1:var(--primary);
+  --brand-2:var(--primary-dark);
+  --paper:var(--surface-card);
+  --bg:var(--surface);
+
+  --tint-06: color-mix(in srgb, var(--brand-1) 6%, var(--surface));
+  --tint-12: color-mix(in srgb, var(--brand-1) 12%, var(--surface));
+  --tint-25: color-mix(in srgb, var(--brand-1) 25%, var(--surface));
+  --mix-even: color-mix(in srgb, var(--brand-1) 50%, var(--brand-2));
+  --shade-15: color-mix(in srgb, var(--brand-2) 85%, black);
+  --grey-border:var(--line);
+  --grey-text:var(--ink-soft);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(circle at 8% 0%, var(--tint-12), transparent 45%),
+    radial-gradient(circle at 100% 100%, var(--tint-06), transparent 40%),
+    var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  padding:36px 18px 60px;
+  line-height:1.55;
+}
+.wrap{max-width:920px;margin:0 auto;}
+
+/* masthead */
+.masthead{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.masthead img{height:42px;width:auto;object-fit:contain;background:#fff;border-radius:6px;padding:4px 8px;}
+.masthead .fallback-logo{
+  font-weight:800;font-size:15px;letter-spacing:.5px;color:var(--brand-2);
+  border:2px solid var(--brand-2);padding:8px 12px;border-radius:4px;display:none;
+}
+.masthead-text .tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--shade-15);font-weight:700;}
+html[data-theme="dark"] .masthead-text .tag{color:var(--primary);}
+.masthead-text .member{font-size:11px;color:var(--grey-text);margin-top:1px;}
+
+.hero{margin:26px 0 24px;}
+.hero h1{
+  font-family:var(--font-heading);
+  font-size:34px;margin:0 0 6px;font-weight:600;line-height:1.15;
+  background:linear-gradient(90deg, var(--brand-2), var(--mix-even));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{margin:0;color:var(--grey-text);font-size:15px;max-width:56ch;}
+
+/* section label */
+.section-label{
+  font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--brand-2);margin:0 0 14px;display:flex;align-items:center;gap:10px;
+}
+html[data-theme="dark"] .section-label{color:var(--primary);}
+.section-label::after{content:'';flex:1;height:1px;background:var(--grey-border);}
+
+/* cards */
+.card{
+  background:var(--paper);border:1px solid var(--grey-border);border-radius:var(--radius);
+  padding:22px 24px;margin-bottom:18px;box-shadow:var(--shadow);
+}
+.card-title{
+  font-family:var(--font-heading);font-size:19px;font-weight:600;color:var(--ink);
+  margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--grey-border);
+}
+.card-title small{font-family:var(--font-body);font-size:13px;font-weight:400;color:var(--grey-text);}
+
+/* form */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+label{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--grey-text);}
+.label-note{font-size:11px;font-weight:500;color:var(--brand-2);margin-left:4px;}
+html[data-theme="dark"] .label-note{color:var(--primary);}
+input[type="number"], select{
+  font-family:var(--font-ui);font-size:15px;color:var(--ink);background:var(--surface-soft);
+  padding:10px 14px;border:1px solid var(--grey-border);border-radius:8px;outline:none;
+  transition:border-color .15s, box-shadow .15s;-moz-appearance:textfield;
+}
+input[type="number"]{font-family:var(--font-mono);}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type="number"]:focus, select:focus{border-color:var(--brand-1);box-shadow:0 0 0 3px var(--tint-25);}
+select{cursor:pointer;}
+
+/* burglary category */
+.bcat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.bcat-option{position:relative;}
+.bcat-option input[type="radio"]{position:absolute;opacity:0;width:0;height:0;}
+.bcat-label{
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;text-align:center;
+  border:1px solid var(--grey-border);border-radius:10px;cursor:pointer;background:var(--surface-soft);
+  transition:border-color .15s, background .15s, box-shadow .15s;
+}
+.bcat-label:hover{border-color:var(--brand-1);background:var(--tint);}
+.bcat-option input:checked + .bcat-label{border-color:var(--brand-1);background:var(--tint-2);box-shadow:0 0 0 2px var(--tint-25);}
+.bcat-option input:focus-visible + .bcat-label{outline:2px solid var(--brand-1);outline-offset:2px;}
+.bcat-num{font-size:16px;font-weight:700;color:var(--ink);}
+.bcat-pct{font-size:11px;color:var(--grey-text);}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-ui);font-size:15px;font-weight:700;padding:12px 24px;border-radius:10px;
+  border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s, background .15s, border-color .15s;
+}
+.btn svg{width:18px;height:18px;}
+.btn-primary{background:var(--brand-2);color:#fff;}
+.btn-primary:hover{transform:translateY(-1px);filter:brightness(1.07);}
+.btn-primary:active{transform:translateY(0);}
+.btn-outline{background:transparent;color:var(--brand-2);border-color:var(--brand-1);padding:9px 16px;font-size:13.5px;}
+html[data-theme="dark"] .btn-outline{color:var(--primary);}
+.btn-outline:hover{background:var(--tint);}
+.btn-text{background:transparent;color:var(--grey-text);}
+.btn-text:hover{color:var(--ink);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+/* mode toggle */
+.mode-toggle{
+  display:inline-flex;border:1px solid var(--grey-border);border-radius:10px;overflow:hidden;
+  margin-bottom:20px;background:var(--surface-soft);
+}
+.mode-btn{
+  font-family:var(--font-ui);font-size:13.5px;font-weight:600;padding:10px 20px;
+  color:var(--grey-text);background:transparent;border:none;cursor:pointer;transition:background .15s, color .15s;
+}
+.mode-btn:not(:last-child){border-right:1px solid var(--grey-border);}
+.mode-btn.active{background:var(--brand-2);color:#fff;}
+
+/* USSD tiers */
+#ussdNote{display:none;}
+#ussdNote.visible{display:block;}
+.ussd-intro{font-size:13.5px;color:var(--grey-text);margin:0 0 16px;}
+.ussd-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+.ussd-tier-card{
+  display:flex;flex-direction:column;background:var(--surface-soft);border:1px solid var(--grey-border);
+  border-radius:12px;padding:16px 16px 14px;transition:border-color .15s, box-shadow .15s;
+}
+.ussd-tier-card.selected{border-color:var(--brand-1);box-shadow:0 0 0 2px var(--tint-25);background:var(--tint);}
+.ussd-tier-title{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--brand-2);margin-bottom:6px;}
+html[data-theme="dark"] .ussd-tier-title{color:var(--primary);}
+.ussd-tier-name{font-family:var(--font-heading);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px;}
+.ussd-line{font-size:12.5px;color:var(--grey-text);margin-bottom:3px;}
+.ussd-line strong{color:var(--ink);font-family:var(--font-mono);font-weight:600;font-size:12px;}
+.ussd-total{margin-top:auto;padding-top:10px;border-top:1px solid var(--grey-border);}
+.ussd-total .lbl{font-size:11px;color:var(--grey-text);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 2px;}
+.ussd-total .amt{font-family:var(--font-mono);font-size:17px;font-weight:700;color:var(--brand-2);margin-bottom:10px;}
+html[data-theme="dark"] .ussd-total .amt{color:var(--primary);}
+.ussd-tier-card .btn{width:100%;}
+
+/* results */
+#results{display:none;}
+#results.visible{display:block;}
+.premium-hero{
+  background:linear-gradient(135deg, var(--brand-2), var(--brand-1));color:#fff;
+  border-radius:var(--radius);padding:26px 26px 22px;margin-bottom:18px;position:relative;overflow:hidden;
+}
+.premium-hero::before{
+  content:'';position:absolute;right:-30px;bottom:-40px;width:170px;height:170px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.25);
+}
+.premium-hero-label{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.85;margin-bottom:6px;}
+.premium-hero-amount{font-family:var(--font-mono);font-size:clamp(2rem,5vw,2.9rem);font-weight:600;line-height:1.05;margin-bottom:8px;}
+.premium-hero-sub{font-size:13px;opacity:.85;}
+
+.covers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.cover-item{border:1px solid var(--grey-border);border-radius:10px;padding:12px 14px;background:var(--surface-soft);}
+.cover-item-name{font-size:11.5px;color:var(--grey-text);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.cover-item-amount{font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--ink);}
+.cover-item-badge{
+  display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;margin-top:6px;
+  background:color-mix(in srgb, var(--success) 15%, var(--surface));color:var(--success);
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+}
+
+.detail-table{width:100%;border-collapse:collapse;font-size:14px;}
+.detail-table th{
+  text-align:left;padding:10px 12px;background:var(--tint);color:var(--grey-text);
+  font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--grey-border);
+}
+.detail-table td{padding:10px 12px;border-bottom:1px solid var(--grey-border);color:var(--ink);vertical-align:top;}
+.detail-table th.num, .detail-table td.num{text-align:right;font-family:var(--font-mono);white-space:nowrap;}
+.detail-table td small{display:block;color:var(--grey-text);font-size:11.5px;margin-top:2px;}
+.detail-table tr.sub td{font-weight:600;background:var(--surface-soft);}
+.detail-table tr.total td{font-weight:800;border-top:2px solid var(--brand-2);border-bottom:none;background:var(--tint);}
+.table-scroll{overflow-x:auto;}
+
+.info-banner{
+  background:var(--tint);border:1px solid var(--grey-border);border-left:3px solid var(--brand-1);
+  border-radius:8px;padding:12px 16px;font-size:13px;color:var(--grey-text);margin-top:4px;
+}
+.banner{display:none;background:var(--danger-tint);color:var(--danger);border-radius:6px;padding:8px 12px;font-size:12.5px;margin-top:12px;}
+.banner.show{display:block;}
+.results-actions{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 0;}
+
+/* modal */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(14,31,46,.55);
+  align-items:center;justify-content:center;z-index:1100;padding:16px;
+}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface-card);border-radius:12px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.modal h3{font-family:var(--font-heading);margin:0 0 4px;font-size:19px;font-weight:600;color:var(--brand-2);}
+html[data-theme="dark"] .modal h3{color:var(--primary);}
+.modal p{margin:0 0 18px;font-size:12.5px;color:var(--grey-text);}
+.modal .field{margin-bottom:12px;}
+.modal .field label{display:block;font-size:12.5px;margin-bottom:5px;}
+.modal .field input{
+  width:100%;font-family:var(--font-ui);font-size:14px;color:var(--ink);background:var(--surface-soft);
+  padding:10px 12px;border:1px solid var(--grey-border);border-radius:8px;outline:none;
+}
+.modal .field input[type=tel]{font-family:var(--font-mono);}
+.modal .field input:focus{border-color:var(--brand-1);box-shadow:0 0 0 3px var(--tint-25);}
+.modal .field .hint{font-size:10.5px;color:var(--grey-text);margin-top:5px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+.modal-actions .btn{padding:10px 18px;font-size:14px;}
+
+[hidden]{display:none !important;}
+
+/* large, primary actions (Fitts) */
+.btn-lg{min-height:54px;font-size:16px;padding:14px 32px;border-radius:12px;}
+.btn-primary{box-shadow:0 10px 20px -10px color-mix(in srgb, var(--brand-2) 80%, transparent);}
+
+/* progress tracker (goal-gradient / Zeigarnik) */
+.tracker{margin:0 0 20px;}
+.tracker-bar{height:6px;border-radius:999px;background:var(--tint-12);overflow:hidden;}
+.tracker-fill{height:100%;width:10%;border-radius:999px;background:linear-gradient(90deg,var(--brand-2),var(--brand-1));transition:width .5s ease;}
+.tracker-steps{display:flex;justify-content:space-between;gap:8px;list-style:none;margin:10px 0 0;padding:0;counter-reset:s;}
+.tracker-steps li{counter-increment:s;display:flex;align-items:center;gap:7px;font-family:var(--font-ui);font-size:12.5px;font-weight:600;color:var(--grey-text);}
+.tracker-steps li::before{
+  content:counter(s);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  font-size:11.5px;border:1.5px solid var(--grey-border);background:var(--surface-soft);
+}
+.tracker-steps li.current{color:var(--ink);}
+.tracker-steps li.current::before{border-color:var(--brand-2);color:var(--brand-2);}
+.tracker-steps li.done{color:var(--ink);}
+.tracker-steps li.done::before{content:'✓';background:var(--brand-2);border-color:var(--brand-2);color:#fff;}
+.tracker-msg{margin-top:10px;font-size:13.5px;color:var(--grey-text);}
+
+/* one-question-at-a-time wizard (Miller / Hick) */
+.wiz-count{font-family:var(--font-ui);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-2);margin-bottom:6px;}
+html[data-theme="dark"] .wiz-count{color:var(--primary);}
+.wiz-q{font-family:var(--font-heading);font-size:23px;font-weight:600;margin:0 0 4px;line-height:1.25;}
+.wiz-help{font-size:13.5px;color:var(--grey-text);margin:0 0 18px;}
+.amount-wrap{position:relative;}
+.amount-wrap > span{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--grey-text);font-family:var(--font-mono);font-size:15px;pointer-events:none;}
+.amount-wrap input{width:100%;padding:16px 16px 16px 64px;font-size:24px;}
+.field-error{min-height:18px;font-size:12.5px;color:var(--danger);margin-top:6px;}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.opt-grid .bcat-label{padding:18px 12px;}
+.opt-grid .bcat-num{font-size:15px;}
+.bcat-label{min-height:64px;justify-content:center;}
+.wiz-actions{display:flex;gap:10px;margin-top:22px;align-items:center;}
+.wiz-actions .btn-primary{flex:1;}
+
+/* results */
+.cta-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 18px;}
+.cta-row .btn-primary{flex:1;min-width:220px;}
+details.card summary{
+  cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-heading);font-size:17px;font-weight:600;
+}
+details.card summary::-webkit-details-marker{display:none;}
+details.card summary::after{content:'+';font-family:var(--font-ui);font-size:22px;color:var(--brand-2);line-height:1;}
+details.card[open] summary::after{content:'−';}
+details.card[open] summary{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--grey-border);}
+
+/* "?" rating-basis helper (top-left, deliberately out of the way) */
+.help-fab{
+  position:fixed;top:66px;left:12px;z-index:900;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--grey-border);background:var(--surface-card);color:var(--grey-text);
+  font:700 15px var(--font-ui);cursor:pointer;box-shadow:var(--shadow);transition:color .15s, border-color .15s;
+}
+.help-fab:hover, .help-fab[aria-expanded="true"]{color:var(--brand-2);border-color:var(--brand-1);}
+.help-panel{
+  display:none;position:fixed;top:106px;left:12px;z-index:900;width:min(330px,calc(100vw - 24px));
+  background:var(--surface-card);border:1px solid var(--grey-border);border-radius:12px;padding:16px;
+  box-shadow:var(--shadow);font-size:13px;color:var(--ink);
+}
+.help-panel.show{display:block;}
+.help-panel h4{font-family:var(--font-heading);font-size:16px;margin:0 0 2px;}
+.help-panel p{margin:0 0 10px;font-size:12px;color:var(--grey-text);}
+.help-panel table{width:100%;border-collapse:collapse;}
+.help-panel td{padding:6px 0;border-top:1px solid var(--grey-border);vertical-align:top;}
+.help-panel td:last-child{text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
+@media (max-width:1040px){.masthead{padding-left:44px;}}
+@media (max-width:560px){
+  .tracker-steps li{font-size:11.5px;}
+  .wiz-q{font-size:20px;}
+}
+
+/* flood risk notice (blocks the page until acknowledged) */
+.flood-overlay{
+  position:fixed;inset:0;z-index:1200;background:rgba(10,24,40,.55);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.flood-overlay.show{display:flex;}
+body.flood-lock{overflow:hidden;}
+.flood-modal{
+  background:var(--brand-2);color:#fff;border-radius:10px;width:100%;max-width:640px;max-height:92vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid rgba(255,255,255,.25);box-shadow:0 24px 70px rgba(0,0,0,.55);
+}
+.flood-head{background:rgba(0,0,0,.22);color:#fff;padding:14px 20px;font-family:var(--font-ui);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;}
+.flood-head svg{width:18px;height:18px;flex-shrink:0;}
+.flood-body{padding:16px 20px 8px;overflow-y:auto;}
+.flood-intro{margin:0 0 14px;font-size:13px;color:#fff;opacity:.92;}
+.flood-cols{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(255,255,255,.35);border-radius:6px;overflow:hidden;}
+.flood-col{background:rgba(255,255,255,.08);}
+.flood-col:first-child{border-right:1px solid rgba(255,255,255,.35);}
+.flood-col h4{margin:0;padding:9px 12px;font-family:var(--font-ui);font-size:12.5px;font-weight:700;color:#fff;}
+.flood-col.cat1 h4{background:#b3261e;}
+.flood-col.cat2 h4{background:#c98a1b;}
+.flood-col ul{list-style:none;margin:0;padding:10px 12px 12px 22px;font-size:12.5px;color:#fff;}
+.flood-col li{padding:3px 0;}
+.flood-ack{display:flex;align-items:center;gap:8px;padding:14px 20px;font-size:13px;color:#fff;cursor:pointer;}
+.flood-ack input{width:16px;height:16px;accent-color:#fff;cursor:pointer;flex-shrink:0;}
+.flood-foot{display:flex;justify-content:flex-end;padding:12px 20px;border-top:1px solid rgba(255,255,255,.25);}
+.flood-foot .btn{padding:10px 26px;font-size:14px;background:#fff;color:#00418a;}
+.flood-foot .btn:hover{filter:none;background:#eaf3fb;}
+.flood-foot .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;background:#fff;}
+@media (max-width:560px){
+  .flood-cols{grid-template-columns:1fr;}
+  .flood-col:first-child{border-right:none;border-bottom:1px solid rgba(255,255,255,.35);}
+}
+
+/* print-only quote sheet */
+#print-area{display:none;}
+
+@media (max-width:600px){
+  body{padding:28px 12px 48px;}
+  .card{padding:18px 16px;}
+  .bcat-num{font-size:14px;}
+  .hero h1{font-size:28px;}
+}
+
+@media print{
+  @page{margin:12mm;}
+  html, body{background:#fff !important;padding:0 !important;}
+  body *{visibility:hidden;}
+  #print-area, #print-area *{visibility:visible;}
+
+  /* Always print in the light palette, whatever the on-screen theme */
+  #print-area{
+    --ink:#0f2438; --ink-soft:#4a6178; --line:#d3e4f2; --surface:#ffffff;
+    --brand-2:#005BB5; --shade-15:#00418a; --tint-12:#eaf3fb; --grey-border:#d3e4f2; --grey-text:#4a6178;
+    display:block;position:absolute;top:0;left:0;width:100%;padding:20px;
+    color:var(--ink);background:#fff;font-family:var(--font-body);
   }
-  main{flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:60px 24px;}
-  .badge{
-    font-family:var(--font-ui); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--primary-dark); background:var(--tint); padding:6px 14px; border-radius:999px; display:inline-block; margin-bottom:20px;
-  }
-  h1{font-family:var(--font-heading); font-weight:600; font-size:38px; margin:0 0 14px;}
-  p{font-size:19px; color:var(--ink-soft); max-width:44ch; margin:0 auto 28px;}
-  .btn{
-    font-family:var(--font-ui); background:var(--primary-dark); color:#fff; padding:12px 24px; border-radius:10px;
-    font-weight:700; font-size:15px; text-decoration:none;
-  }
+  .q-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:14px;margin-bottom:6px;}
+  .q-header img{height:50px;}
+  .q-header-left .member{font-size:10px;color:var(--grey-text);margin-top:6px;}
+  .q-header-left .reference{font-size:11.5px;font-style:italic;color:var(--ink);border-left:2px solid var(--brand-2);padding-left:8px;margin-top:6px;}
+  .q-header-right{text-align:right;font-size:11.5px;line-height:1.55;}
+  .q-header-right .org-name{font-weight:800;color:var(--brand-2);font-size:13px;margin-bottom:2px;}
+  .q-header-right a{color:var(--brand-2);text-decoration:none;}
+  .q-header-right .contact-line{margin-top:4px;}
+  .q-divider{border:none;border-top:1px solid var(--grey-border);margin-bottom:18px;}
+  .q-title{font-family:var(--font-heading);font-size:22px;font-weight:700;color:var(--brand-2);margin:0 0 2px;}
+  .q-meta{font-size:11.5px;color:var(--grey-text);margin-bottom:4px;}
+  .q-basis{font-size:11.5px;color:var(--ink);font-weight:700;margin-bottom:18px;}
+  .q-section-title{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--shade-15);font-weight:700;margin:18px 0 8px;border-bottom:1px solid var(--grey-border);padding-bottom:4px;}
+  .q-insured-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:12.5px;}
+  .q-insured-grid div b{display:block;font-size:10px;text-transform:uppercase;color:var(--grey-text);font-weight:700;margin-bottom:2px;}
+  table.q-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;}
+  table.q-table th{background:var(--tint-12);text-align:left;padding:8px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--shade-15);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  table.q-table td{padding:8px 10px;border-bottom:1px solid var(--grey-border);}
+  table.q-table td small{display:block;font-size:10px;color:var(--grey-text);}
+  table.q-table td.num, table.q-table th.num{text-align:right;font-family:var(--font-mono);}
+  .q-sub-row td{color:var(--grey-text);}
+  .q-subtotal-row td{font-weight:700;border-top:1px solid var(--brand-2);}
+  .q-total-row td{font-weight:800;border-top:2px solid var(--brand-2);border-bottom:none;font-size:13px;}
+  .q-notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+  .q-notes-grid h4{margin:0 0 4px;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--grey-text);}
+  .q-notes-grid ul{margin:0;padding-left:16px;font-size:10.5px;line-height:1.6;color:var(--ink);}
+  .q-notes-grid li{margin-bottom:3px;}
+  .q-flood{font-size:10.5px;line-height:1.55;color:var(--ink);}
+  .q-flood p{margin:0 0 6px;}
+  .q-flood b{color:var(--shade-15);}
+  .q-block{page-break-inside:avoid;break-inside:avoid;}
+  .q-subjectivities{font-size:10.5px;color:var(--grey-text);line-height:1.6;margin-top:16px;border-top:1px solid var(--grey-border);padding-top:12px;}
+  .q-footer{margin-top:24px;font-size:10px;color:var(--grey-text);text-align:center;}
+}
 </style>
 </head>
 <body>
 <script src="../assets/js/site-nav.js"></script>
-  <main>
-    <div>
-      <span class="badge">Coming soon</span>
-      <h1>SME Insure is on the way</h1>
-      <p>This calculator is being built and will appear here once it's ready. Check back soon, or head to another tool in the meantime.</p>
-      <a class="btn" href="../../index.html">Back to all calculators</a>
+<div class="wrap">
+
+  <div class="masthead">
+    <img id="logo-img" src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance.png" alt="Enterprise Insurance">
+    <div class="fallback-logo" id="logo-fallback">ENTERPRISE INSURANCE</div>
+    <div class="masthead-text">
+      <div class="tag">Enterprise Insurance</div>
+      <div class="member">Informal &amp; SME Market Segment</div>
     </div>
-  </main>
+  </div>
+
+  <div class="hero">
+    <h1>SME Insure Premium Calculator</h1>
+    <p>Calculate your Fire, Flood, Burglary &amp; Public Liability insurance premium instantly.</p>
+  </div>
+
+  <div class="mode-toggle" role="tablist">
+    <button class="mode-btn active" id="modeUssd" onclick="setMode('ussd')">USSD Fixed Tiers</button>
+    <button class="mode-btn" id="modeCustom" onclick="setMode('custom')">Custom Cover</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="tracker" id="tracker" aria-label="Your progress">
+    <div class="tracker-bar"><div class="tracker-fill" id="tracker-fill"></div></div>
+    <ol class="tracker-steps">
+      <li class="current">Choose cover</li>
+      <li>Your premium</li>
+      <li>Print quote</li>
+    </ol>
+    <div class="tracker-msg" id="tracker-msg" aria-live="polite"></div>
+  </div>
+
+  <!-- USSD TIERS -->
+  <div class="card visible" id="ussdNote">
+    <div class="card-title">USSD Fixed Cover Tiers</div>
+    <p class="ussd-intro">Select a pre-packaged tier below to see the cover and premium, then print a quote.</p>
+    <div class="ussd-tiers" id="ussdTiers"></div>
+  </div>
+
+  <!-- CUSTOM FORM (one question at a time) -->
+  <div id="customForm" style="display:none">
+    <div class="card">
+      <div class="wiz-count" id="wiz-count">Question 1 of 3</div>
+
+      <div class="wiz-panel" data-step="1">
+        <h3 class="wiz-q">How much do you want to insure?</h3>
+        <p class="wiz-help">Enter the total value of your stock and property (Sum Insured).</p>
+        <div class="amount-wrap">
+          <span>GHC</span>
+          <input type="text" inputmode="decimal" id="sumInsured" autocomplete="off" placeholder="54,600" aria-describedby="si-error" aria-label="Sum Insured in GHC">
+        </div>
+        <div class="field-error" id="si-error" role="alert"></div>
+      </div>
+
+      <div class="wiz-panel" data-step="2" hidden>
+        <h3 class="wiz-q">How much of it needs burglary cover?</h3>
+        <p class="wiz-help">Choose the share of your Sum Insured to cover against burglary.</p>
+        <div class="bcat-grid">
+          <div class="bcat-option"><input type="radio" name="bcat" id="bcat1" value="1" checked><label class="bcat-label" for="bcat1"><span class="bcat-num">Cat 1</span><span class="bcat-pct">10% of SI</span></label></div>
+          <div class="bcat-option"><input type="radio" name="bcat" id="bcat2" value="2"><label class="bcat-label" for="bcat2"><span class="bcat-num">Cat 2</span><span class="bcat-pct">20% of SI</span></label></div>
+          <div class="bcat-option"><input type="radio" name="bcat" id="bcat3" value="3"><label class="bcat-label" for="bcat3"><span class="bcat-num">Cat 3</span><span class="bcat-pct">30% of SI</span></label></div>
+          <div class="bcat-option"><input type="radio" name="bcat" id="bcat4" value="4"><label class="bcat-label" for="bcat4"><span class="bcat-num">Cat 4</span><span class="bcat-pct">40% of SI</span></label></div>
+          <div class="bcat-option"><input type="radio" name="bcat" id="bcat5" value="5"><label class="bcat-label" for="bcat5"><span class="bcat-num">Cat 5</span><span class="bcat-pct">50% of SI</span></label></div>
+        </div>
+      </div>
+
+      <div class="wiz-panel" data-step="3" hidden>
+        <h3 class="wiz-q">Add Public Liability cover?</h3>
+        <p class="wiz-help">Protects you if a customer or visitor is hurt or their property is damaged at your premises.</p>
+        <div class="opt-grid">
+          <div class="bcat-option"><input type="radio" name="pl" id="pl1" value="100" checked><label class="bcat-label" for="pl1"><span class="bcat-num">Yes, include it</span><span class="bcat-pct">GHC 20,000 cover</span></label></div>
+          <div class="bcat-option"><input type="radio" name="pl" id="pl0" value="0"><label class="bcat-label" for="pl0"><span class="bcat-num">No, skip it</span><span class="bcat-pct">No Public Liability</span></label></div>
+        </div>
+      </div>
+
+      <div class="wiz-actions">
+        <button type="button" class="btn btn-text btn-lg" id="wiz-back" onclick="wizBack()">Back</button>
+        <button type="button" class="btn btn-primary btn-lg" id="wiz-next" onclick="wizNext()"><span id="wiz-next-label">Next</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="premium-hero">
+      <div class="premium-hero-label">Total Premium Payable</div>
+      <div class="premium-hero-amount" id="totalPremium">—</div>
+      <div class="premium-hero-sub" id="heroSub">Including all levies &amp; VAT</div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn btn-primary btn-lg" id="print-btn">Print my quote</button>
+      <button class="btn btn-text" id="edit-btn" type="button">Change my cover</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cover Summary</div>
+      <div class="covers-grid" id="coversGrid"></div>
+    </div>
+
+    <details class="card">
+      <summary>See how your premium is made up</summary>
+      <div class="table-scroll">
+        <table class="detail-table">
+          <thead><tr><th>Item</th><th class="num">Amount (GHC)</th></tr></thead>
+          <tbody id="breakdownBody"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <!-- "?" RATING BASIS (kept off the results and the printed quote) -->
+  <button class="help-fab" id="help-btn" type="button" aria-label="Rating basis" aria-expanded="false" aria-controls="help-panel">?</button>
+  <div class="help-panel" id="help-panel" role="dialog" aria-label="Rating basis">
+    <h4>Rating basis</h4>
+    <p>For reference only. Rates are never shown on printed quotes.</p>
+    <table>
+      <tr><td>Fire, Allied Perils &amp; Flood</td><td>0.125% of SI</td></tr>
+      <tr><td>Burglary (covered share of SI)</td><td>1%</td></tr>
+      <tr><td>Burglary (remainder of SI)</td><td>0.025%</td></tr>
+      <tr><td>Public Liability</td><td>GHC 100 flat</td></tr>
+      <tr><td>Levies</td><td>1% of risk prem. + GHC 5</td></tr>
+      <tr><td>VAT</td><td>20% of risk prem.</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- FLOOD RISK NOTICE (shown on page open) -->
+<div class="flood-overlay" id="flood-overlay" role="dialog" aria-modal="true" aria-labelledby="flood-title">
+  <div class="flood-modal">
+    <div class="flood-head" id="flood-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Flood Risk Notice
+    </div>
+    <div class="flood-body">
+      <p class="flood-intro">Before you continue, please review the flood risk classification for the locations below. This may affect the cover available for this policy.</p>
+      <div class="flood-cols">
+        <div class="flood-col cat1"><h4>Category 1 — No Flood Cover</h4><ul id="flood-cat1"></ul></div>
+        <div class="flood-col cat2"><h4>Category 2 — Limited Cover After Survey</h4><ul id="flood-cat2"></ul></div>
+      </div>
+    </div>
+    <label class="flood-ack"><input type="checkbox" id="flood-check"> I have read and understood the flood risk classification above.</label>
+    <div class="flood-foot"><button class="btn btn-primary" id="flood-continue" disabled>Continue</button></div>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>A few details for the quote</h3>
+    <p>These appear on the printed SME Insure quotation.</p>
+    <div class="field"><label for="f-name">Insured Name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
+    <div class="field"><label for="f-contact">Contact</label><input type="tel" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div class="field"><label for="f-location">Shop Location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
+    <div class="field"><label for="f-code">Agent's Code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
+    <div id="modal-banner" class="banner"></div>
+    <div class="modal-actions">
+      <button class="btn btn-text" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-generate">Generate &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT-ONLY QUOTE -->
+<div id="print-area">
+  <div class="q-header">
+    <div class="q-header-left">
+      <img src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance.png" alt="Enterprise Insurance">
+      <div class="member">A Member of the Enterprise Group</div>
+      <div class="reference" id="q-reference">Reference: —</div>
+    </div>
+    <div class="q-header-right">
+      <div class="org-name">EIC Informal &amp; SME Market Segment</div>
+      <div>No. 47 Patrice Lumumba Street,</div>
+      <div>Airport Residential Area, Accra</div>
+      <div class="contact-line"><a href="tel:+233247984909">+233 24 798 4909</a></div>
+      <div class="contact-line"><a href="mailto:eicinformalmarket@gmail.com">eicinformalmarket@gmail.com</a></div>
+    </div>
+  </div>
+  <hr class="q-divider">
+
+  <div class="q-title">SME Insure — Premium Quotation</div>
+  <div class="q-meta" id="q-meta"></div>
+  <div class="q-basis" id="q-basis"></div>
+
+  <div class="q-section-title">Insured Details</div>
+  <div class="q-insured-grid">
+    <div><b>Insured Name</b><span id="q-name"></span></div>
+    <div><b>Contact</b><span id="q-contact"></span></div>
+    <div><b>Shop Location</b><span id="q-location"></span></div>
+    <div><b>Agent's Code</b><span id="q-code"></span></div>
+  </div>
+
+  <div class="q-section-title">Cover Summary</div>
+  <table class="q-table">
+    <thead><tr><th>Section</th><th class="num">Sum Insured (GHC)</th><th class="num">Premium (GHC)</th></tr></thead>
+    <tbody id="q-lines"></tbody>
+    <tfoot id="q-foot"></tfoot>
+  </table>
+
+  <div class="q-block">
+    <div class="q-section-title">Deductibles</div>
+    <table class="q-table">
+      <thead><tr><th>Type</th><th>Deductible</th></tr></thead>
+      <tbody id="q-deductibles"></tbody>
+    </table>
+  </div>
+
+  <div class="q-block">
+    <div class="q-section-title">Flood Risk</div>
+    <div class="q-flood">
+      <p>Flood cover under this policy is subject to the following location-based restrictions:</p>
+      <p><b>Category 1 Locations</b> — flood cover is excluded for property situated in the following locations: <span id="q-flood1"></span>.</p>
+      <p><b>Category 2 Locations</b> — flood cover is subject to a satisfactory survey by TRMU for property situated in the following locations: <span id="q-flood2"></span>.</p>
+    </div>
+  </div>
+
+  <div class="q-section-title">Key Exclusions &amp; General Conditions</div>
+  <div class="q-notes-grid">
+    <div><h4>Exclusions</h4><ul id="q-exclusions"></ul></div>
+    <div><h4>General Conditions</h4><ul id="q-conditions"></ul></div>
+  </div>
+
+  <div class="q-subjectivities">
+    <b>Subjectivities.</b> This quotation is valid for 30 days from the date of issue. Cover will commence upon receipt of full premium payment. This quote is subject to our standard policy wording.
+  </div>
+
+  <div class="q-footer">Generated by SME Insure &middot; Enterprise Insurance &middot; This is a quotation, not a policy document.</div>
+</div>
+
+<script>
+  /* ---------------------------------------------------------------
+     EDIT HERE: SME-specific wording for the printed quote.
+     Replace the placeholder text with the final exclusions / conditions.
+     --------------------------------------------------------------- */
+  const QUOTE_EXCLUSIONS = [
+    '[SME exclusion 1 — to be supplied]',
+    '[SME exclusion 2 — to be supplied]',
+    '[SME exclusion 3 — to be supplied]'
+  ];
+  const QUOTE_CONDITIONS = [
+    '[SME condition 1 — to be supplied]',
+    '[SME condition 2 — to be supplied]'
+  ];
+
+  let currentMode = 'ussd';
+  let lastResult = null;
+
+  const USSD_PACKAGES = [
+    { tier: 'Package 1', name: 'GHC 20,000',  si: 20000  },
+    { tier: 'Package 2', name: 'GHC 50,000',  si: 50000  },
+    { tier: 'Package 3', name: 'GHC 100,000', si: 100000 },
+    { tier: 'Package 4', name: 'GHC 200,000', si: 200000 },
+    { tier: 'Package 5', name: 'GHC 500,000', si: 500000 },
+  ];
+  const USSD_BCAT = 2;      // USSD tiers use Burglary Cat 2 (20% of SI)
+  const USSD_PL   = 100;    // and the standard Public Liability
+
+  /* EDIT HERE: deductibles printed on the quote (from the Assets All Risk quote) */
+  const DEDUCTIBLES = [
+    { type: 'BUILDINGS', text: '5% each and every loss, minimum GHS 1,500.00' },
+    { type: 'FIRE & ACTS OF GOD', text: '5% each and every loss, minimum GHS 500.00' },
+    { type: 'ALL OTHERS', text: '3% each and every loss, minimum GHS 300.00' }
+  ];
+
+  /* ---------------------------------------------------------------
+     EDIT HERE: flood risk location lists shown in the opening notice.
+     --------------------------------------------------------------- */
+  const FLOOD_CAT1 = [
+    'Abossey Okai','Alajo','Avenor','Caprice','Industrial Area (North)','Industrial Area (South)',
+    'Kwame Nkrumah Circle','Mallam – Ike Quartey Area','Mallam Junction','Odawna Basin / River',
+    'Texpo Market Area','Weija Dam Area'
+  ];
+  const FLOOD_CAT2 = [
+    'Achimota Abofu Junction','Adabraka Sahara','Afienya Toll Booth Area','Awoshie Barnyard','Bortianor Red Top',
+    'Dome','East Legon Hills','Kaneshie Market Area','Kasoa Old Barrier','Lapaz Race Course','New Achimota Overhead',
+    'Tema Community 5','Tema Community 25','Tema Industrial Area','Tema New Town','Tse Addo'
+  ];
+
+  function initFloodNotice() {
+    const overlay = document.getElementById('flood-overlay');
+    const check = document.getElementById('flood-check');
+    const btn = document.getElementById('flood-continue');
+    const wrap = document.querySelector('.wrap');
+    const fill = (id, items) => {
+      const ul = document.getElementById(id);
+      items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    };
+    fill('flood-cat1', FLOOD_CAT1);
+    fill('flood-cat2', FLOOD_CAT2);
+
+    overlay.classList.add('show');
+    document.body.classList.add('flood-lock');
+    wrap.setAttribute('inert', '');
+    check.checked = false;
+    btn.disabled = true;
+    check.focus();
+
+    check.addEventListener('change', () => { btn.disabled = !check.checked; });
+    btn.addEventListener('click', () => {
+      if (!check.checked) return;
+      overlay.classList.remove('show');
+      document.body.classList.remove('flood-lock');
+      wrap.removeAttribute('inert');
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('ussdNote').classList.add('visible');
+    renderUSSD();
+    initFloodNotice();
+    initUi();
+    const img = document.getElementById('logo-img');
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      document.getElementById('logo-fallback').style.display = 'block';
+    });
+  });
+
+  /* ---- progress tracker ---- */
+  function setStage(done, pct, msg) {
+    document.getElementById('tracker-fill').style.width = pct + '%';
+    document.getElementById('tracker-msg').textContent = msg;
+    document.querySelectorAll('#tracker .tracker-steps li').forEach((li, i) => {
+      li.classList.toggle('done', i < done);
+      li.classList.toggle('current', i === done);
+    });
+  }
+
+  function setMode(m) {
+    currentMode = m;
+    document.getElementById('modeUssd').classList.toggle('active', m === 'ussd');
+    document.getElementById('modeCustom').classList.toggle('active', m === 'custom');
+    document.getElementById('customForm').style.display = m === 'custom' ? '' : 'none';
+    document.getElementById('ussdNote').classList.toggle('visible', m === 'ussd');
+    document.getElementById('results').classList.remove('visible');
+    lastResult = null;
+    if (m === 'ussd') {
+      renderUSSD();
+      setStage(0, 10, 'Pick a package to see your premium.');
+    } else {
+      showWiz(1);
+    }
+  }
+
+  function fmt(n) {
+    return 'GHC ' + n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtSI(n) {
+    return 'GHC ' + n.toLocaleString('en-GH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  /* ---- comma-formatted amount input ---- */
+  function parseAmount(str) { return parseFloat(String(str).replace(/,/g, '')); }
+  function formatAmountInput(el) {
+    const raw = el.value;
+    const caret = el.selectionStart;
+    const sigBefore = raw.slice(0, caret).replace(/[^\d.]/g, '').length;
+    const clean = raw.replace(/[^\d.]/g, '');
+    const dot = clean.indexOf('.');
+    let int = dot === -1 ? clean : clean.slice(0, dot);
+    const dec = dot === -1 ? null : clean.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+    int = int.replace(/^0+(?=\d)/, '');
+    let out = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (dec !== null) out += '.' + dec;
+    el.value = out;
+    let count = 0, pos = 0;
+    while (pos < out.length && count < sigBefore) { if (/[\d.]/.test(out[pos])) count++; pos++; }
+    try { el.setSelectionRange(pos, pos); } catch (e) {}
+  }
+
+  /* ---- Rating logic (unchanged from the original calculator) ---- */
+  function calcPremium(si, bcatNum, pl) {
+    // Fire, Flood & Burglary on full SI at 0.00125
+    const fireLine = si * 0.00125;
+
+    // Burglary: catPct% of SI at 1%, remainder at 0.025%
+    const catPct = bcatNum * 0.1;
+    const burgSI = si * catPct;
+    const remSI = si * (1 - catPct);
+    const burgLine = burgSI * 0.01;
+    const remLine = remSI * 0.00025;
+
+    const riskPremium = fireLine + burgLine + remLine + pl;
+    const fireLevy = riskPremium * 0.01 + 5;
+    const vat = riskPremium * 0.20;
+    const total = riskPremium + fireLevy + vat;
+
+    return { si, catPct, burgSI, remSI, fireLine, burgLine, remLine, pl, riskPremium, fireLevy, vat, total };
+  }
+
+  function calcTierPremium(si) {
+    return +calcPremium(si, USSD_BCAT, USSD_PL).total.toFixed(2);
+  }
+
+  /* ---- Shared result builder (screen and print). No rates are put in any label. ---- */
+  function buildResult(si, bcatNum, pl, basisLabel) {
+    const r = calcPremium(si, bcatNum, pl);
+    const lines = [
+      { label: 'Fire, Allied Perils & Flood', sum: r.si, premium: r.fireLine },
+      { label: 'Burglary', sum: r.burgSI, premium: r.burgLine + r.remLine },
+    ];
+    if (pl > 0) lines.push({ label: 'Public Liability', sum: 20000, premium: r.pl });
+    return { r, bcatNum, pl, basisLabel, lines };
+  }
+
+  function showResult(res) {
+    lastResult = res;
+    const r = res.r;
+
+    document.getElementById('totalPremium').textContent = fmt(r.total);
+    document.getElementById('heroSub').textContent =
+      `${res.basisLabel} · Sum Insured: ${fmtSI(r.si)} · Burglary Cat ${res.bcatNum}`;
+
+    const covers = [
+      { name: 'Fire & Allied Perils', amount: fmtSI(r.si) },
+      { name: 'Flood', amount: fmtSI(r.si) },
+      { name: 'Burglary', amount: fmtSI(r.burgSI) },
+    ];
+    if (res.pl > 0) covers.push({ name: 'Public Liability', amount: 'GHC 20,000' });
+
+    document.getElementById('coversGrid').innerHTML = covers.map(c => `
+      <div class="cover-item">
+        <div class="cover-item-name">${c.name}</div>
+        <div class="cover-item-amount">${c.amount}</div>
+        <div class="cover-item-badge">Covered</div>
+      </div>`).join('');
+
+    document.getElementById('breakdownBody').innerHTML =
+      res.lines.map(l => `<tr><td>${l.label}</td><td class="num">${fmt(l.premium)}</td></tr>`).join('') +
+      `<tr class="sub"><td>Risk Premium (subtotal)</td><td class="num">${fmt(r.riskPremium)}</td></tr>
+       <tr><td>Levies</td><td class="num">${fmt(r.fireLevy)}</td></tr>
+       <tr><td>VAT</td><td class="num">${fmt(r.vat)}</td></tr>
+       <tr class="total"><td>Total Premium Payable</td><td class="num">${fmt(r.total)}</td></tr>`;
+
+    setStage(2, 80, 'Almost there: 2 of 3 done. Print your quote to finish.');
+    const el = document.getElementById('results');
+    el.classList.add('visible');
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  /* ---- Custom cover: one question at a time ---- */
+  let wizStep = 1;
+  const WIZ_MSG = [
+    '3 quick questions to your premium.',
+    'Great start. 2 questions to go.',
+    'Last question, then your premium.'
+  ];
+  function showWiz(n, moveFocus) {
+    wizStep = n;
+    document.querySelectorAll('.wiz-panel').forEach(p => { p.hidden = (+p.dataset.step !== n); });
+    document.getElementById('wiz-count').textContent = `Question ${n} of 3`;
+    document.getElementById('wiz-back').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('wiz-next-label').textContent = n === 3 ? 'Calculate my premium' : 'Next';
+    setStage(0, 10 + (n - 1) * 18, WIZ_MSG[n - 1]);
+    if (moveFocus) {
+      const panel = document.querySelector(`.wiz-panel[data-step="${n}"]`);
+      const target = panel.querySelector('input:checked, input[type="text"]');
+      if (target) target.focus();
+    }
+  }
+  function wizNext() {
+    if (wizStep === 1) {
+      const v = parseAmount(document.getElementById('sumInsured').value);
+      const err = document.getElementById('si-error');
+      if (!v || v <= 0) {
+        err.textContent = 'Enter the amount you want to insure.';
+        document.getElementById('sumInsured').focus();
+        return;
+      }
+      err.textContent = '';
+    }
+    if (wizStep < 3) showWiz(wizStep + 1, true); else calculate();
+  }
+  function wizBack() { if (wizStep > 1) showWiz(wizStep - 1, true); }
+
+  function calculate() {
+    const si = parseAmount(document.getElementById('sumInsured').value);
+    if (!si || si <= 0) { showWiz(1, true); wizNext(); return; }
+    const bcatNum = parseInt(document.querySelector('input[name="bcat"]:checked').value, 10);
+    const pl = parseFloat(document.querySelector('input[name="pl"]:checked').value);
+    document.getElementById('customForm').style.display = 'none';
+    showResult(buildResult(si, bcatNum, pl, 'Custom Cover'));
+  }
+
+  /* ---- USSD tiers (whole card is the tap target) ---- */
+  function renderUSSD() {
+    document.getElementById('ussdTiers').innerHTML = USSD_PACKAGES.map((t, i) => {
+      const burgSI = t.si * (USSD_BCAT * 0.1);
+      const total = calcTierPremium(t.si);
+      return `
+      <div class="ussd-tier-card" id="tier-${i}" onclick="selectTier(${i})" style="cursor:pointer">
+        <div class="ussd-tier-title">${t.tier}</div>
+        <div class="ussd-tier-name">${t.name} Cover</div>
+        <div class="ussd-line">· Fire &amp; Allied Perils: <strong>${fmtSI(t.si)}</strong></div>
+        <div class="ussd-line">· Burglary: <strong>${fmtSI(burgSI)}</strong></div>
+        <div class="ussd-line">· Public Liability: <strong>${fmtSI(20000)}</strong></div>
+        <div class="ussd-total">
+          <div class="lbl">Total Premium</div>
+          <div class="amt">${fmt(total)}</div>
+          <button type="button" class="btn btn-outline">Select this package</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectTier(i) {
+    const t = USSD_PACKAGES[i];
+    document.querySelectorAll('.ussd-tier-card').forEach((c, idx) => c.classList.toggle('selected', idx === i));
+    showResult(buildResult(t.si, USSD_BCAT, USSD_PL, `USSD ${t.tier}`));
+  }
+
+  /* ---- UI wiring ---- */
+  function initUi() {
+    setStage(0, 10, 'Pick a package to see your premium.');
+
+    const si = document.getElementById('sumInsured');
+    si.addEventListener('input', () => { formatAmountInput(si); document.getElementById('si-error').textContent = ''; });
+    si.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); wizNext(); } });
+
+    document.getElementById('edit-btn').addEventListener('click', () => {
+      document.getElementById('results').classList.remove('visible');
+      if (currentMode === 'custom') {
+        document.getElementById('customForm').style.display = '';
+        showWiz(1, true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        document.querySelectorAll('.ussd-tier-card').forEach(c => c.classList.remove('selected'));
+        setStage(0, 10, 'Pick a package to see your premium.');
+        document.getElementById('ussdNote').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    const hb = document.getElementById('help-btn'), hp = document.getElementById('help-panel');
+    const closeHelp = () => { hp.classList.remove('show'); hb.setAttribute('aria-expanded', 'false'); };
+    hb.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = hp.classList.toggle('show');
+      hb.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', e => { if (!hp.contains(e.target)) closeHelp(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp(); });
+  }
+
+  /* ---- Print quote ---- */
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('print-btn').addEventListener('click', () => {
+    if (!lastResult) return;
+    overlay.classList.add('show');
+  });
+  document.getElementById('modal-cancel').addEventListener('click', () => overlay.classList.remove('show'));
+  document.getElementById('f-contact').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+  });
+
+  function formatGhanaNumber(digits) {
+    const rest = digits.slice(1); // 9 digits
+    return `(+233) ${rest.slice(0,2)}-${rest.slice(2,5)}-${rest.slice(5,9)}`;
+  }
+  function fillList(id, items) {
+    const ul = document.getElementById(id);
+    ul.innerHTML = '';
+    items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+  }
+
+  document.getElementById('modal-generate').addEventListener('click', () => {
+    const name = document.getElementById('f-name').value.trim();
+    const contactRaw = document.getElementById('f-contact').value.trim();
+    const location = document.getElementById('f-location').value.trim();
+    const code = document.getElementById('f-code').value.trim();
+    const mb = document.getElementById('modal-banner');
+
+    if (!name || !contactRaw || !location || !code) {
+      mb.textContent = 'Please fill in all four details.';
+      mb.classList.add('show');
+      return;
+    }
+    if (!/^0\d{9}$/.test(contactRaw)) {
+      mb.textContent = 'Contact must be a 10-digit Ghanaian number starting with 0, e.g. 0551234567.';
+      mb.classList.add('show');
+      return;
+    }
+    mb.classList.remove('show');
+
+    const res = lastResult, r = res.r;
+
+    document.getElementById('q-name').textContent = name;
+    document.getElementById('q-contact').textContent = formatGhanaNumber(contactRaw);
+    document.getElementById('q-location').textContent = location;
+    document.getElementById('q-code').textContent = code;
+
+    const today = new Date();
+    const issued = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    const quoteNo = 'SI-' + today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') +
+      String(today.getDate()).padStart(2, '0') + '-' + Math.floor(1000 + Math.random() * 9000);
+    const trackingId = String(Math.floor(1000000000 + Math.random() * 9000000000));
+    document.getElementById('q-meta').textContent = `Quote Date: ${issued}  ·  Tracking ID: ${trackingId}`;
+    document.getElementById('q-reference').textContent = `Reference: ${quoteNo}`;
+    document.getElementById('q-basis').textContent =
+      `${res.basisLabel} · Sum Insured ${fmtSI(r.si)} · Burglary Cat ${res.bcatNum} · Cover Period: 12 Months`;
+
+    document.getElementById('q-lines').innerHTML = res.lines.map(l => `
+      <tr><td>${l.label}</td><td class="num">${fmt(l.sum)}</td><td class="num">${fmt(l.premium)}</td></tr>`).join('');
+
+    document.getElementById('q-foot').innerHTML = `
+      <tr class="q-subtotal-row"><td>Risk Premium (subtotal)</td><td></td><td class="num">${fmt(r.riskPremium)}</td></tr>
+      <tr class="q-sub-row"><td>Levies</td><td></td><td class="num">${fmt(r.fireLevy)}</td></tr>
+      <tr class="q-sub-row"><td>VAT</td><td></td><td class="num">${fmt(r.vat)}</td></tr>
+      <tr class="q-total-row"><td>Total Premium Payable</td><td></td><td class="num">${fmt(r.total)}</td></tr>`;
+
+    document.getElementById('q-deductibles').innerHTML =
+      DEDUCTIBLES.map(d => `<tr><td>${d.type}</td><td>${d.text}</td></tr>`).join('');
+    document.getElementById('q-flood1').textContent = FLOOD_CAT1.join(', ');
+    document.getElementById('q-flood2').textContent = FLOOD_CAT2.join(', ');
+
+    fillList('q-exclusions', QUOTE_EXCLUSIONS);
+    fillList('q-conditions', QUOTE_CONDITIONS);
+
+    overlay.classList.remove('show');
+    window.print();
+    setStage(3, 100, 'All done. Your quote is ready.');
+  });
+</script>
 </body>
 </html>
