@@ -27,32 +27,79 @@
         .card {
             background: var(--surface-card);
             border-radius: 16px;
-            padding: 30px;
+            padding: 24px;
             max-width: 480px;
             width: 100%;
             border: 1px solid var(--line);
             box-shadow: var(--shadow);
         }
 
-        .card h2 {
-            text-align: center;
-            color: var(--ink);
-            margin-bottom: 20px;
-            font-family: var(--font-heading);
+        [hidden] { display: none !important; }
+
+        /* ---------- Tabs: one decision at a time (Hick, Miller) ---------- */
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            padding: 4px;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            margin-bottom: 22px;
+        }
+
+        .tab {
+            border: none;
+            background: transparent;
+            color: var(--ink-soft);
+            font-size: 0.95rem;
             font-weight: 600;
-            font-size: 1.3rem;
-            letter-spacing: 0.3px;
+            padding: 12px 10px;
+            min-height: 46px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
         }
 
-        .input-page, .result-page {
+        .tab:hover { color: var(--ink); }
+
+        .tab[aria-selected="true"] {
+            background: var(--surface-card);
+            color: var(--primary-dark);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ---------- Progress (Zeigarnik, goal gradient) ---------- */
+        .progress { margin-bottom: 20px; }
+
+        .progress-row {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+            margin-bottom: 8px;
         }
 
-        .result-page {
-            display: none;
+        .progress-row strong { color: var(--ink); font-weight: 600; }
+
+        .bar {
+            height: 6px;
+            background: var(--line);
+            border-radius: 6px;
+            overflow: hidden;
         }
+
+        .bar-fill {
+            height: 100%;
+            width: 8%;
+            background: var(--primary);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        /* ---------- Form ---------- */
+        .panel { display: flex; flex-direction: column; gap: 16px; }
 
         .input-group {
             display: flex;
@@ -68,12 +115,14 @@
 
         .input-field {
             padding: 12px 16px;
+            min-height: 48px;
             border: 1.5px solid var(--line);
             background: var(--surface-soft);
             border-radius: 10px;
             font-size: 1rem;
             color: var(--ink);
             outline: none;
+            width: 100%;
             transition: border-color 0.25s, box-shadow 0.25s;
         }
 
@@ -82,46 +131,8 @@
             box-shadow: 0 0 0 3px var(--primary-soft);
         }
 
-        .input-field::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-        }
-        html[data-theme="dark"] .input-field::-webkit-calendar-picker-indicator {
-            filter: invert(0.85);
-        }
-
-        .btn {
-            padding: 13px 20px;
-            border: none;
-            background: var(--primary);
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            text-align: center;
-            width: 100%;
-            letter-spacing: 0.3px;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1.5px solid var(--primary);
-            color: var(--primary-dark);
-            margin-top: 5px;
-        }
-
-        .btn-secondary:hover {
-            background: var(--tint);
-        }
+        .input-field::-webkit-calendar-picker-indicator { cursor: pointer; }
+        html[data-theme="dark"] .input-field::-webkit-calendar-picker-indicator { filter: invert(0.85); }
 
         .error-msg {
             background: var(--danger-tint);
@@ -130,166 +141,293 @@
             border-radius: 8px;
             color: var(--danger);
             font-size: 0.85rem;
-            display: none;
+            margin-top: 16px;
+        }
+
+        /* ---------- Buttons (Fitts: one big primary action) ---------- */
+        .btn {
+            padding: 14px 20px;
+            min-height: 52px;
+            border: none;
+            background: var(--primary);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            text-align: center;
+            width: 100%;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover:not(:disabled) { background: var(--primary-dark); }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1.5px solid var(--primary);
+            color: var(--primary-dark);
+        }
+
+        .btn-secondary:hover:not(:disabled) { background: var(--tint); }
+
+        .cta-wrap { margin-top: 20px; }
+
+        .cta-hint {
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+            margin-top: 10px;
+            min-height: 1.2em;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* ---------- Result (Von Restorff: the number is the one loud thing) ---------- */
+        .result-page { display: flex; flex-direction: column; gap: 20px; }
+
+        .result-title {
+            text-align: center;
+            color: var(--ink-soft);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
         }
 
         .result-box {
             background: var(--surface-soft);
-            padding: 24px 20px;
+            padding: 28px 20px 22px;
             border-radius: 12px;
             border: 1px solid var(--line);
             text-align: center;
-            font-size: 1.05rem;
-            color: var(--ink);
-            line-height: 1.7;
-            white-space: pre-line;
         }
 
-        .result-box .highlight {
+        .result-main {
             color: var(--primary-dark);
+            font-family: var(--font-heading);
             font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 2.6rem;
+            line-height: 1.1;
         }
 
-        .divider {
-            height: 1px;
-            background: var(--line);
-            margin: 5px 0 10px 0;
+        .result-sub {
+            margin-top: 6px;
+            color: var(--ink-soft);
+            font-size: 1rem;
         }
+
+        .result-meta {
+            margin-top: 22px;
+            padding-top: 16px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.92rem;
+            color: var(--ink-soft);
+        }
+
+        .meta-row span:last-child { color: var(--ink); font-weight: 500; text-align: right; }
 
         @media (max-width: 400px) {
-            .card {
-                padding: 20px;
-                border-radius: 12px;
-            }
+            .card { padding: 18px; border-radius: 12px; }
+            .result-main { font-size: 2.2rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
         }
     </style>
 </head>
 <body>
 <script src="../assets/js/site-nav.js"></script>
-    <div class="card" id="app">
+    <main class="card" id="app">
+
         <!-- INPUT PAGE -->
-        <div class="input-page" id="inputPage">
-            <h2>📅 Travel Date Duration</h2>
-            <div class="input-group">
-                <label>Start Date</label>
-                <input type="date" class="input-field" id="startDate">
+        <div id="inputPage">
+            <div class="tabs" role="tablist" aria-label="Calculator type">
+                <button class="tab" role="tab" id="tab-duration" aria-selected="true" aria-controls="panel-duration" type="button">Date duration</button>
+                <button class="tab" role="tab" id="tab-age" aria-selected="false" aria-controls="panel-age" type="button">Age</button>
             </div>
-            <div class="input-group">
-                <label>End Date</label>
-                <input type="date" class="input-field" id="endDate">
+
+            <div class="progress" aria-live="polite">
+                <div class="progress-row">
+                    <strong id="progressText">0 of 2 dates entered</strong>
+                    <span id="progressPct"></span>
+                </div>
+                <div class="bar"><div class="bar-fill" id="barFill"></div></div>
             </div>
-            <button class="btn" onclick="calculateDuration()">Calculate Duration</button>
-            <div class="error-msg" id="durationError"></div>
 
-            <div class="divider"></div>
+            <section class="panel" id="panel-duration" role="tabpanel" aria-labelledby="tab-duration">
+                <div class="input-group">
+                    <label for="startDate">Start date</label>
+                    <input type="date" class="input-field" id="startDate">
+                </div>
+                <div class="input-group">
+                    <label for="endDate">End date</label>
+                    <input type="date" class="input-field" id="endDate">
+                </div>
+            </section>
 
-            <h2>🎂 Age Calculator</h2>
-            <div class="input-group">
-                <label>Date of Birth</label>
-                <input type="date" class="input-field" id="dobInput">
+            <section class="panel" id="panel-age" role="tabpanel" aria-labelledby="tab-age" hidden>
+                <div class="input-group">
+                    <label for="dobInput">Date of birth</label>
+                    <input type="date" class="input-field" id="dobInput">
+                </div>
+            </section>
+
+            <div class="error-msg" id="errorMsg" role="alert" hidden></div>
+
+            <div class="cta-wrap">
+                <button class="btn" id="calcBtn" type="button" disabled>Calculate duration</button>
+                <p class="cta-hint" id="ctaHint" aria-live="polite">Pick a start date to begin.</p>
             </div>
-            <button class="btn" onclick="calculateAge()">Calculate Age</button>
-            <div class="error-msg" id="ageError"></div>
-
-            <div class="divider"></div>
-
-            <button class="btn" onclick="calculateBoth()">Calculate Both</button>
-            <div class="error-msg" id="bothError"></div>
         </div>
 
         <!-- RESULT PAGE -->
-        <div class="result-page" id="resultPage">
-            <h2 id="resultTitle">Result</h2>
-            <div class="result-box" id="resultContent"></div>
-            <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        <div class="result-page" id="resultPage" hidden>
+            <h2 class="result-title" id="resultTitle">Result</h2>
+            <div class="result-box">
+                <div class="result-main" id="resultMain"></div>
+                <div class="result-sub" id="resultSub"></div>
+                <div class="result-meta" id="resultMeta"></div>
+            </div>
+            <button class="btn btn-secondary" id="backBtn" type="button">Calculate another</button>
         </div>
-    </div>
+    </main>
 
     <script>
-        const inputPage = document.getElementById('inputPage');
-        const resultPage = document.getElementById('resultPage');
-        const resultTitle = document.getElementById('resultTitle');
-        const resultContent = document.getElementById('resultContent');
-        const durationError = document.getElementById('durationError');
-        const ageError = document.getElementById('ageError');
-        const bothError = document.getElementById('bothError');
+        const MODES = {
+            duration: { total: 2, button: 'Calculate duration' },
+            age: { total: 1, button: 'Calculate age' }
+        };
+        let mode = 'duration';
 
-        function showResult(title, content) {
-            resultTitle.textContent = title;
-            resultContent.innerHTML = content;
-            inputPage.style.display = 'none';
-            resultPage.style.display = 'flex';
-            durationError.style.display = 'none';
-            ageError.style.display = 'none';
-            bothError.style.display = 'none';
+        const $ = (id) => document.getElementById(id);
+        const startEl = $('startDate');
+        const endEl = $('endDate');
+        const dobEl = $('dobInput');
+        const calcBtn = $('calcBtn');
+        const errorMsg = $('errorMsg');
+
+        const DATE_FMT = { year: 'numeric', month: 'long', day: 'numeric' };
+        const fmtDate = (d) => d.toLocaleDateString(undefined, DATE_FMT);
+        const fmtNum = (n) => n.toLocaleString('en-US');
+        const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+        const parseDate = (v) => new Date(v + 'T00:00:00');
+
+        function todayStart() {
+            const t = new Date();
+            t.setHours(0, 0, 0, 0);
+            return t;
         }
 
-        function goBack() {
-            resultPage.style.display = 'none';
-            inputPage.style.display = 'flex';
+        function todayISO() {
+            const t = todayStart();
+            const m = String(t.getMonth() + 1).padStart(2, '0');
+            const d = String(t.getDate()).padStart(2, '0');
+            return `${t.getFullYear()}-${m}-${d}`;
+        }
+
+        // Returns { done, error, hint } for the active tab.
+        function evaluate() {
+            if (mode === 'duration') {
+                const s = startEl.value, e = endEl.value;
+                const done = (s ? 1 : 0) + (e ? 1 : 0);
+                if (!s) return { done, error: '', hint: 'Pick a start date to begin.' };
+                if (!e) return { done, error: '', hint: 'Now pick an end date.' };
+                if (parseDate(s) > parseDate(e)) {
+                    return { done, error: 'The start date must be on or before the end date.', hint: '' };
+                }
+                return { done, error: '', hint: 'Both dates are set. Ready to calculate.' };
+            }
+            const v = dobEl.value;
+            if (!v) return { done: 0, error: '', hint: 'Pick a date of birth to begin.' };
+            if (parseDate(v) > todayStart()) {
+                return { done: 1, error: 'Date of birth cannot be in the future.', hint: '' };
+            }
+            return { done: 1, error: '', hint: 'Date of birth is set. Ready to calculate.' };
+        }
+
+        function refresh() {
+            const total = MODES[mode].total;
+            const { done, error, hint } = evaluate();
+            const complete = done === total && !error;
+
+            $('progressText').textContent = complete
+                ? 'All set'
+                : `${done} of ${total} ${total === 1 ? 'date' : 'dates'} entered`;
+            $('progressPct').textContent = complete ? '100%' : '';
+            // Small head start so the bar never looks empty (goal gradient).
+            $('barFill').style.width = Math.max(8, (done / total) * 100) + '%';
+
+            errorMsg.hidden = !error;
+            errorMsg.textContent = error;
+            $('ctaHint').textContent = hint;
+            calcBtn.textContent = MODES[mode].button;
+            calcBtn.disabled = !complete;
+        }
+
+        function setMode(next) {
+            mode = next;
+            $('tab-duration').setAttribute('aria-selected', String(next === 'duration'));
+            $('tab-age').setAttribute('aria-selected', String(next === 'age'));
+            $('panel-duration').hidden = next !== 'duration';
+            $('panel-age').hidden = next !== 'age';
+            refresh();
+        }
+
+        function showResult({ title, main, sub, rows }) {
+            $('resultTitle').textContent = title;
+            $('resultMain').textContent = main;
+            $('resultSub').textContent = sub;
+            const meta = $('resultMeta');
+            meta.replaceChildren();
+            rows.forEach(([label, value]) => {
+                const row = document.createElement('div');
+                row.className = 'meta-row';
+                const l = document.createElement('span');
+                const v = document.createElement('span');
+                l.textContent = label;
+                v.textContent = value;
+                row.append(l, v);
+                meta.appendChild(row);
+            });
+            $('inputPage').hidden = true;
+            $('resultPage').hidden = false;
+            $('backBtn').focus();
         }
 
         function calculateDuration() {
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
-            durationError.style.display = 'none';
+            const start = parseDate(startEl.value);
+            const end = parseDate(endEl.value);
+            // Use UTC so daylight-saving changes can never shift the count.
+            const utc = (d) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+            const days = Math.round((utc(end) - utc(start)) / 86400000) + 1; // inclusive
 
-            if (!startVal || !endVal) {
-                durationError.textContent = 'Please select both dates.';
-                durationError.style.display = 'block';
-                return;
-            }
-
-            const start = new Date(startVal + 'T00:00:00');
-            const end = new Date(endVal + 'T00:00:00');
-
-            if (isNaN(start) || isNaN(end)) {
-                durationError.textContent = 'Invalid date selected.';
-                durationError.style.display = 'block';
-                return;
-            }
-            if (start > end) {
-                durationError.textContent = 'Start date must be before or equal to end date.';
-                durationError.style.display = 'block';
-                return;
-            }
-
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
-
-            const formattedStart = start.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-            const formattedEnd = end.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-            showResult('Duration Result',
-                `From: ${formattedStart}\nTo: ${formattedEnd}\n\n<span class="highlight">${diffDays} days</span>\n(inclusive)`
-            );
+            showResult({
+                title: 'Date duration',
+                main: plural(days, 'day').replace(/^(\d+)/, (m) => fmtNum(Number(m))),
+                sub: 'counting both the start and end date',
+                rows: [['From', fmtDate(start)], ['To', fmtDate(end)]]
+            });
         }
 
         function calculateAge() {
-            const dobVal = document.getElementById('dobInput').value;
-            ageError.style.display = 'none';
-
-            if (!dobVal) {
-                ageError.textContent = 'Please select your date of birth.';
-                ageError.style.display = 'block';
-                return;
-            }
-
-            const dob = new Date(dobVal + 'T00:00:00');
-            if (isNaN(dob)) {
-                ageError.textContent = 'Invalid date selected.';
-                ageError.style.display = 'block';
-                return;
-            }
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (dob > today) {
-                ageError.textContent = 'Date of birth cannot be in the future.';
-                ageError.style.display = 'block';
-                return;
-            }
+            const dob = parseDate(dobEl.value);
+            const today = todayStart();
 
             let years = today.getFullYear() - dob.getFullYear();
             let months = today.getMonth() - dob.getMonth();
@@ -305,79 +443,45 @@
                 months += 12;
             }
 
-            const formattedDob = dob.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-            showResult('Age Result',
-                `Date of Birth: ${formattedDob}\n\nYou are\n<span class="highlight">${years} years, ${months} months, ${days} days</span>\nold`
-            );
+            showResult({
+                title: 'Age',
+                main: plural(years, 'year'),
+                sub: `${plural(months, 'month')}, ${plural(days, 'day')}`,
+                rows: [['Date of birth', fmtDate(dob)], ['As of', fmtDate(today)]]
+            });
         }
 
-        function calculateBoth() {
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
-            const dobVal = document.getElementById('dobInput').value;
-            bothError.style.display = 'none';
+        // ---------- Events ----------
+        $('tab-duration').addEventListener('click', () => setMode('duration'));
+        $('tab-age').addEventListener('click', () => setMode('age'));
 
-            if (!startVal || !endVal || !dobVal) {
-                bothError.textContent = 'Please fill in the start date, end date, and date of birth.';
-                bothError.style.display = 'block';
-                return;
+        [startEl, endEl, dobEl].forEach((el) => el.addEventListener('input', () => {
+            if (el === startEl) endEl.min = startEl.value || '';
+            refresh();
+        }));
+
+        calcBtn.addEventListener('click', () => {
+            if (calcBtn.disabled) return;
+            if (mode === 'duration') calculateDuration(); else calculateAge();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !$('inputPage').hidden && !calcBtn.disabled && e.target.tagName !== 'BUTTON') {
+                calcBtn.click();
             }
+        });
 
-            const start = new Date(startVal + 'T00:00:00');
-            const end = new Date(endVal + 'T00:00:00');
-            const dob = new Date(dobVal + 'T00:00:00');
+        $('backBtn').addEventListener('click', () => {
+            $('resultPage').hidden = true;
+            $('inputPage').hidden = false;
+        });
 
-            if (isNaN(start) || isNaN(end) || isNaN(dob)) {
-                bothError.textContent = 'Invalid date selected.';
-                bothError.style.display = 'block';
-                return;
-            }
-            if (start > end) {
-                bothError.textContent = 'Start date must be before or equal to end date.';
-                bothError.style.display = 'block';
-                return;
-            }
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (dob > today) {
-                bothError.textContent = 'Date of birth cannot be in the future.';
-                bothError.style.display = 'block';
-                return;
-            }
-
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
-
-            let years = today.getFullYear() - dob.getFullYear();
-            let months = today.getMonth() - dob.getMonth();
-            let days = today.getDate() - dob.getDate();
-
-            if (days < 0) {
-                months--;
-                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-                days += prevMonth.getDate();
-            }
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-
-            const formattedStart = start.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-            const formattedEnd = end.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-            const formattedDob = dob.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-            showResult('Duration & Age Result',
-                `From: ${formattedStart}\nTo: ${formattedEnd}\n\n<span class="highlight">${diffDays} days</span>\n(inclusive)\n\nDate of Birth: ${formattedDob}\n\nYou are\n<span class="highlight">${years} years, ${months} months, ${days} days</span>\nold`
-            );
-        }
-
-        // Clear all fields on page load
         window.onload = () => {
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            document.getElementById('dobInput').value = '';
+            startEl.value = '';
+            endEl.value = '';
+            dobEl.value = '';
+            dobEl.max = todayISO();
+            refresh();
         };
     </script>
 </body>
