@@ -32,6 +32,7 @@
   }
 
   *{box-sizing:border-box;}
+  [hidden]{display:none !important;}
 
   body{
     margin:0;
@@ -48,6 +49,11 @@
   .app{
     width:100%;
     max-width:480px;
+  }
+
+  :focus-visible{
+    outline:2px solid var(--blue);
+    outline-offset:2px;
   }
 
   /* ---------- Header / brand mark ---------- */
@@ -137,21 +143,54 @@
   }
 
   .card-body{
-    padding:26px 24px 24px;
+    padding:22px 24px 24px;
+  }
+
+  /* ---------- Progress (Zeigarnik + goal gradient) ---------- */
+  .progress{
+    margin-bottom:22px;
+  }
+
+  .progress-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:12.5px;
+    color:var(--charcoal-soft);
+    margin-bottom:8px;
+  }
+
+  .progress-row strong{
+    color:var(--charcoal);
+    font-weight:600;
+  }
+
+  .bar{
+    height:6px;
+    background:var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+
+  .bar-fill{
+    height:100%;
+    width:8%;
+    background:var(--blue);
+    border-radius:6px;
+    transition:width 0.3s ease;
   }
 
   /* ---------- Form ---------- */
   .field{
-    margin-bottom:20px;
+    margin-bottom:22px;
   }
 
-  .field label{
+  .field label,
+  .field .field-label{
     display:block;
-    font-size:12.5px;
+    font-size:13px;
     font-weight:600;
     color:var(--charcoal-soft);
-    text-transform:uppercase;
-    letter-spacing:1px;
     margin-bottom:8px;
   }
 
@@ -161,17 +200,18 @@
     border:1.5px solid var(--line);
     border-radius:10px;
     overflow:hidden;
-    transition:border-color 0.15s ease;
+    transition:border-color 0.15s ease, box-shadow 0.15s ease;
     background:var(--surface-card);
   }
 
   .premium-input:focus-within{
     border-color:var(--blue);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent);
   }
 
   .premium-input .prefix{
     background:var(--blue-tint-90);
-    padding:12px 14px;
+    padding:14px 14px;
     font-weight:600;
     color:var(--blue-deep);
     font-size:14px;
@@ -182,134 +222,143 @@
     flex:1;
     border:none;
     outline:none;
-    padding:12px 14px;
-    font-size:16px;
+    padding:14px 14px;
+    font-size:17px;
     font-family:var(--font-body);
     color:var(--charcoal);
     background:transparent;
     min-width:0;
   }
 
-  /* ---------- Custom select ---------- */
-  .select-wrap{
-    position:relative;
+  /* ---------- Choice chips (Hick: tap instead of dropdown) ---------- */
+  .chip-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
   }
 
-  select{
-    width:100%;
+  .chip{
     appearance:none;
-    -webkit-appearance:none;
+    min-height:50px;
+    padding:10px 12px;
     border:1.5px solid var(--line);
     border-radius:10px;
-    padding:12px 40px 12px 14px;
-    font-size:15px;
-    font-family:var(--font-body);
-    color:var(--charcoal);
     background:var(--surface-card);
-    cursor:pointer;
-    transition:border-color 0.15s ease;
-  }
-
-  select:focus{
-    outline:none;
-    border-color:var(--blue);
-  }
-
-  select.placeholder-active{
-    color:var(--charcoal-soft);
-  }
-
-  .select-wrap::after{
-    content:'';
-    position:absolute;
-    right:16px;
-    top:50%;
-    width:9px;
-    height:9px;
-    border-right:2px solid var(--blue);
-    border-bottom:2px solid var(--blue);
-    transform:translateY(-65%) rotate(45deg);
-    pointer-events:none;
-  }
-
-  .rate-badge{
-    display:inline-block;
-    margin-top:8px;
-    font-size:12.5px;
+    color:var(--charcoal);
+    font-family:var(--font-body);
+    font-size:14.5px;
     font-weight:600;
-    color:var(--blue-deep);
+    cursor:pointer;
+    text-align:center;
+    transition:border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .chip:hover{
+    border-color:var(--blue-tint-30);
     background:var(--blue-tint-90);
-    padding:4px 10px;
-    border-radius:20px;
+  }
+
+  .chip[aria-checked="true"]{
+    background:var(--blue-deep);
+    border-color:var(--blue-deep);
+    color:#fff;
   }
 
   #motorSubField{
-    display:none;
-    margin-top:14px;
+    margin-top:-6px;
+    padding:14px;
+    border-radius:10px;
+    background:var(--blue-tint-90);
+    border:1px solid var(--line);
+  }
+
+  #motorSubField .chip-grid{
+    margin-bottom:0;
+  }
+
+  #motorSubField .chip{
+    background:var(--surface-card);
+  }
+
+  #motorSubField .chip[aria-checked="true"]{
+    background:var(--blue-deep);
   }
 
   .sticker-note{
-    font-size:11.5px;
+    font-size:12px;
     color:var(--charcoal-soft);
-    margin-top:8px;
+    margin:10px 0 0;
     line-height:1.5;
-    display:none;
   }
 
   .error-msg{
     font-size:12.5px;
-    color:var(--blue-deep);
+    color:var(--danger);
     margin-top:6px;
-    display:none;
   }
 
-  .generate-btn{
+  /* ---------- Primary action (Fitts) ---------- */
+  .generate-btn,
+  .back-btn{
+    display:block;
     width:100%;
-    background:var(--blue-deep);
-    color:#fff;
-    border:none;
-    padding:15px;
+    min-height:54px;
     border-radius:10px;
-    font-size:15px;
+    font-size:16px;
     font-weight:600;
     font-family:var(--font-body);
     cursor:pointer;
-    margin-top:6px;
-    transition:background 0.15s ease, transform 0.05s ease;
     letter-spacing:0.3px;
+    transition:background 0.15s ease, transform 0.05s ease, opacity 0.15s ease;
   }
 
-  .generate-btn:hover{
+  .generate-btn,
+  .back-btn{
+    background:var(--blue-deep);
+    color:#fff;
+    border:none;
+  }
+
+  .generate-btn:hover:not(:disabled),
+  .back-btn:hover{
     background:var(--blue-shade-10);
   }
 
-  .generate-btn:active{
+  .generate-btn:active:not(:disabled),
+  .back-btn:active{
     transform:scale(0.99);
   }
 
-  /* ---------- Results screen ---------- */
-  #resultScreen{
-    display:none;
+  .generate-btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
   }
 
+  .cta-hint{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--charcoal-soft);
+    margin:10px 0 0;
+    min-height:1.2em;
+  }
+
+  /* ---------- Results screen (Von Restorff: the amount is the focus) ---------- */
   .result-body{
     padding:36px 24px 28px;
     text-align:center;
   }
 
   .result-label{
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:2px;
+    font-size:13px;
     color:var(--blue);
-    font-weight:700;
+    font-weight:600;
     margin-bottom:10px;
   }
 
   .result-amount{
     font-family:var(--font-heading);
     font-weight:700;
-    font-size:44px;
+    font-size:46px;
     color:var(--blue-shade-20);
     margin:0 0 6px;
     letter-spacing:-0.5px;
@@ -324,23 +373,28 @@
   }
 
   .result-sub{
-    font-size:13px;
+    font-size:13.5px;
     color:var(--charcoal-soft);
     margin-bottom:18px;
   }
 
-  /* details / breakdown disclosure */
+  /* details / breakdown disclosure (Miller: hidden until asked for) */
   .details-toggle{
+    appearance:none;
+    background:none;
+    border:none;
     display:inline-flex;
     align-items:center;
     gap:6px;
     justify-content:center;
-    margin:0 auto 20px;
-    font-size:12.5px;
+    margin:0 auto 18px;
+    padding:10px 14px;
+    min-height:44px;
+    font-family:var(--font-body);
+    font-size:13px;
     font-weight:600;
     color:var(--blue-deep);
     cursor:pointer;
-    user-select:none;
   }
 
   .info-dot{
@@ -414,24 +468,6 @@
     color:var(--blue-shade-20);
   }
 
-  .back-btn{
-    width:100%;
-    background:var(--surface-card);
-    color:var(--blue-deep);
-    border:1.5px solid var(--blue-deep);
-    padding:13px;
-    border-radius:10px;
-    font-size:14.5px;
-    font-weight:600;
-    font-family:var(--font-body);
-    cursor:pointer;
-    transition:background 0.15s ease;
-  }
-
-  .back-btn:hover{
-    background:var(--blue-tint-90);
-  }
-
   .footer-note{
     text-align:center;
     font-size:11px;
@@ -441,7 +477,11 @@
   }
 
   @media (max-width:400px){
-    .result-amount{ font-size:36px; }
+    .result-amount{ font-size:38px; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ transition:none !important; }
   }
 </style>
 </head>
@@ -460,7 +500,7 @@
   <!-- INPUT SCREEN -->
   <div id="inputScreen" class="card">
     <div class="card-header">
-      <svg class="horse-flourish" viewBox="0 0 110 70" xmlns="http://www.w3.org/2000/svg">
+      <svg class="horse-flourish" viewBox="0 0 110 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M5 60 C20 35, 35 20, 55 15 C65 12.5, 72 16, 70 20 C68 23.5, 60 22, 57 26 C54 30, 60 32, 65 30 C70 28, 76 32, 72 36 C66 43, 52 40, 46 48 C41 55, 38 62, 33 66" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
       </svg>
       <h1>Commission Calculator</h1>
@@ -468,67 +508,68 @@
     </div>
     <div class="card-body">
 
+      <div class="progress" aria-live="polite">
+        <div class="progress-row">
+          <strong id="progressText">0 of 2 complete</strong>
+          <span id="progressPct"></span>
+        </div>
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      </div>
+
       <div class="field">
-        <label for="premiumInput">Premium Amount</label>
+        <label for="premiumInput">Premium amount</label>
         <div class="premium-input">
           <span class="prefix">GH₵</span>
-          <input type="number" id="premiumInput" placeholder="e.g. 557.00" min="0" step="0.01" inputmode="decimal">
+          <input type="text" id="premiumInput" placeholder="e.g. 1,557.00" inputmode="decimal" autocomplete="off">
         </div>
-        <div class="error-msg" id="premiumError">Please enter a valid premium amount greater than 0.</div>
+        <div class="error-msg" id="premiumError" role="alert" hidden>Enter an amount greater than 0.</div>
       </div>
 
       <div class="field">
-        <label for="policyType">Policy Type</label>
-        <div class="select-wrap">
-          <select id="policyType" class="placeholder-active">
-            <option value="" disabled selected>Select policy type</option>
-            <option value="motor" data-method="motor">Motor</option>
-            <option value="travel" data-rate="0.15" data-method="P.taxed">Travel</option>
-            <option value="pa" data-rate="0.15" data-method="P.taxed">Personal Accident</option>
-            <option value="ahotopii" data-rate="0.15" data-method="no-P.tax">AhotoPii</option>
-            <option value="momoinsure" data-rate="0.15" data-method="no-P.tax">MomoInsure</option>
-            <option value="sme" data-rate="0.15" data-method="P.taxed">SME Insure</option>
-          </select>
+        <span class="field-label" id="policyLabel">Policy type</span>
+        <div class="chip-grid" id="policyGrid" role="radiogroup" aria-labelledby="policyLabel">
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="motor" data-method="motor">Motor</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="travel" data-rate="0.15" data-method="P.taxed">Travel</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="pa" data-rate="0.15" data-method="P.taxed">Personal Accident</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="ahotopii" data-rate="0.15" data-method="no-P.tax">AhotoPii</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="momoinsure" data-rate="0.15" data-method="no-P.tax">MomoInsure</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="sme" data-rate="0.15" data-method="P.taxed">SME Insure</button>
         </div>
-        <div class="error-msg" id="policyError">Please select a policy type.</div>
       </div>
 
-      <div class="field" id="motorSubField">
-        <label for="motorSubType">Motor Cover</label>
-        <div class="select-wrap">
-          <select id="motorSubType" class="placeholder-active">
-            <option value="" disabled selected>Select cover</option>
-            <option value="motor-tp" data-rate="0.075" data-method="motor">Third Party</option>
-            <option value="motor-comp" data-rate="0.125" data-method="motor">Comprehensive</option>
-          </select>
+      <div class="field" id="motorSubField" hidden>
+        <span class="field-label" id="motorLabel">Motor cover</span>
+        <div class="chip-grid" id="motorGrid" role="radiogroup" aria-labelledby="motorLabel">
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="motor-tp" data-rate="0.075" data-method="motor">Third Party</button>
+          <button type="button" class="chip" role="radio" aria-checked="false" data-value="motor-comp" data-rate="0.125" data-method="motor">Comprehensive</button>
         </div>
-        <div class="sticker-note" id="stickerNote">A GH₵79 sticker fee is deducted from the premium before the commission rate is applied.</div>
-        <div class="error-msg" id="motorSubError">Please select a motor cover type.</div>
+        <p class="sticker-note">A GH₵79 sticker fee is deducted from the premium before the commission rate is applied.</p>
       </div>
 
-      <button class="generate-btn" id="generateBtn">Generate Commission</button>
+      <button class="generate-btn" id="generateBtn" type="button" disabled>Generate commission</button>
+      <p class="cta-hint" id="ctaHint" aria-live="polite">Enter a premium amount to begin.</p>
     </div>
   </div>
 
   <!-- RESULTS SCREEN -->
-  <div id="resultScreen" class="card">
+  <div id="resultScreen" class="card" hidden>
     <div class="result-body">
-      <div class="result-label">Commission Due</div>
+      <div class="result-label">Commission due</div>
       <div class="result-amount"><span class="result-currency">GH₵</span><span id="resultValue">0.00</span></div>
       <div class="result-sub" id="resultPolicyName">Motor &mdash; Third Party</div>
 
-      <div class="details-toggle" id="detailsToggle">
-        <span class="info-dot">?</span>
-        <span>Details</span>
-        <span class="chevron"></span>
-      </div>
+      <button class="details-toggle" id="detailsToggle" type="button" aria-expanded="false" aria-controls="breakdownBox">
+        <span class="info-dot" aria-hidden="true">?</span>
+        <span>See how this was calculated</span>
+        <span class="chevron" aria-hidden="true"></span>
+      </button>
       <div class="breakdown" id="breakdownBox"></div>
 
-      <button class="back-btn" id="backBtn">Calculate Another</button>
+      <button class="back-btn" id="backBtn" type="button">Calculate another</button>
     </div>
   </div>
 
-  <div class="footer-note">EIC Informal & SME Market Segment &middot; Internal Agent Tool</div>
+  <div class="footer-note">EIC Informal &amp; SME Market Segment &middot; Internal Agent Tool</div>
 
 </div>
 
@@ -536,15 +577,12 @@
   const premiumInput = document.getElementById('premiumInput');
   const premiumError = document.getElementById('premiumError');
 
-  const policyType = document.getElementById('policyType');
-  const policyError = document.getElementById('policyError');
-
+  const policyGrid = document.getElementById('policyGrid');
+  const motorGrid = document.getElementById('motorGrid');
   const motorSubField = document.getElementById('motorSubField');
-  const motorSubType = document.getElementById('motorSubType');
-  const motorSubError = document.getElementById('motorSubError');
-  const stickerNote = document.getElementById('stickerNote');
 
   const generateBtn = document.getElementById('generateBtn');
+  const ctaHint = document.getElementById('ctaHint');
 
   const inputScreen = document.getElementById('inputScreen');
   const resultScreen = document.getElementById('resultScreen');
@@ -557,6 +595,45 @@
   const COMMISSION_TAX_RATE = 0.10;
   const P_TAX_RATE = 0.20;
 
+  // ---------- Comma-formatted number inputs ----------
+  function parseNum(value){
+    return parseFloat(String(value).replace(/,/g, ''));
+  }
+
+  function attachCommaFormat(input, maxDecimals){
+    input.addEventListener('input', () => {
+      const old = input.value;
+      const caret = input.selectionStart === null ? old.length : input.selectionStart;
+
+      // How many digits/dots sit to the right of the caret (stays stable while commas change).
+      let after = 0;
+      for (let i = caret; i < old.length; i++) if (/[\d.]/.test(old[i])) after++;
+
+      let raw = old.replace(/[^\d.]/g, '');
+      const dot = raw.indexOf('.');
+      if (dot !== -1) raw = raw.slice(0, dot + 1) + raw.slice(dot + 1).replace(/\./g, '');
+
+      let intPart = dot === -1 ? raw : raw.slice(0, dot);
+      let decPart = dot === -1 ? null : raw.slice(dot + 1, dot + 1 + maxDecimals);
+
+      intPart = intPart.replace(/^0+(?=\d)/, '');
+      if (intPart === '' && decPart !== null) intPart = '0';
+
+      const out = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (decPart !== null ? '.' + decPart : '');
+      input.value = out;
+
+      let pos = out.length, seen = 0;
+      while (pos > 0 && seen < after) {
+        pos--;
+        if (/[\d.]/.test(out[pos])) seen++;
+      }
+      if (document.activeElement === input) input.setSelectionRange(pos, pos);
+    });
+  }
+
+  attachCommaFormat(premiumInput, 2);
+
+  // ---------- Commission methods ----------
   // a) Motor — deduct flat sticker fee from premium, apply rate, then deduct 10% commission tax.
   function calculateMotor(premium, rate){
     const stickerFee = STICKER_FEE;
@@ -593,81 +670,88 @@
     'sme': 'SME Insure'
   };
 
-  function refreshSelectStyle(sel){
-    if (sel.value === '') sel.classList.add('placeholder-active');
-    else sel.classList.remove('placeholder-active');
-  }
-
-  policyType.addEventListener('change', () => {
-    refreshSelectStyle(policyType);
-    policyError.style.display = 'none';
-
-    if (policyType.value === 'motor'){
-      motorSubField.style.display = 'block';
-      stickerNote.style.display = 'block';
-    } else {
-      motorSubField.style.display = 'none';
-      stickerNote.style.display = 'none';
-      motorSubType.value = '';
-      refreshSelectStyle(motorSubType);
-      motorSubError.style.display = 'none';
-    }
-  });
-
-  motorSubType.addEventListener('change', () => {
-    refreshSelectStyle(motorSubType);
-    motorSubError.style.display = 'none';
-  });
-
   function formatGHC(num){
     return num.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  // ---------- Chip groups ----------
+  let selectedPolicy = null;   // the chip element
+  let selectedMotor = null;    // the chip element
+
+  function selectChip(grid, chip){
+    grid.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-checked', String(c === chip)));
+  }
+
+  policyGrid.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    selectedPolicy = chip;
+    selectChip(policyGrid, chip);
+
+    if (chip.dataset.value === 'motor'){
+      motorSubField.hidden = false;
+    } else {
+      motorSubField.hidden = true;
+      selectedMotor = null;
+      selectChip(motorGrid, null);
+    }
+    refresh();
+  });
+
+  motorGrid.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    selectedMotor = chip;
+    selectChip(motorGrid, chip);
+    refresh();
+  });
+
+  // ---------- Progress + validation ----------
+  function refresh(){
+    const premium = parseNum(premiumInput.value);
+    const hasPremium = !isNaN(premium) && premium > 0;
+    const typedButInvalid = premiumInput.value.trim() !== '' && !hasPremium;
+    premiumError.hidden = !typedButInvalid;
+
+    const isMotor = selectedPolicy && selectedPolicy.dataset.value === 'motor';
+    const total = isMotor ? 3 : 2;
+    const hasPolicy = !!selectedPolicy;
+    const hasMotor = !isMotor || !!selectedMotor;
+
+    const done = (hasPremium ? 1 : 0) + (hasPolicy ? 1 : 0) + (isMotor && selectedMotor ? 1 : 0);
+    const complete = hasPremium && hasPolicy && hasMotor;
+
+    document.getElementById('progressText').textContent = complete ? 'All set' : `${done} of ${total} complete`;
+    document.getElementById('progressPct').textContent = complete ? '100%' : '';
+    // Small head start so the bar never looks empty (goal gradient).
+    document.getElementById('barFill').style.width = Math.max(8, (done / total) * 100) + '%';
+
+    generateBtn.disabled = !complete;
+
+    if (complete) ctaHint.textContent = 'Ready to generate.';
+    else if (!hasPremium) ctaHint.textContent = 'Enter a premium amount to begin.';
+    else if (!hasPolicy) ctaHint.textContent = 'Choose a policy type.';
+    else ctaHint.textContent = 'Choose a motor cover.';
+  }
+
+  premiumInput.addEventListener('input', refresh);
+
+  // ---------- Generate ----------
   generateBtn.addEventListener('click', () => {
-    const premium = parseFloat(premiumInput.value);
-    let valid = true;
+    if (generateBtn.disabled) return;
 
-    if (isNaN(premium) || premium <= 0){
-      premiumError.style.display = 'block';
-      valid = false;
-    } else {
-      premiumError.style.display = 'none';
-    }
-
-    if (!policyType.value){
-      policyError.style.display = 'block';
-      valid = false;
-    } else {
-      policyError.style.display = 'none';
-    }
-
-    let effectiveType = policyType.value;
-    let rate = null;
-    let method = null;
-
-    if (policyType.value === 'motor'){
-      if (!motorSubType.value){
-        motorSubError.style.display = 'block';
-        valid = false;
-      } else {
-        motorSubError.style.display = 'none';
-        effectiveType = motorSubType.value;
-        rate = parseFloat(motorSubType.selectedOptions[0].dataset.rate);
-        method = motorSubType.selectedOptions[0].dataset.method;
-      }
-    } else if (policyType.value){
-      rate = parseFloat(policyType.selectedOptions[0].dataset.rate);
-      method = policyType.selectedOptions[0].dataset.method;
-    }
-
-    if (!valid) return;
+    const premium = parseNum(premiumInput.value);
+    const chip = selectedPolicy.dataset.value === 'motor' ? selectedMotor : selectedPolicy;
+    const effectiveType = chip.dataset.value;
+    const rate = parseFloat(chip.dataset.rate);
+    const method = chip.dataset.method;
 
     let result;
     if (method === 'motor'){
       result = calculateMotor(premium, rate);
     } else if (method === 'no-P.tax'){
       result = calculateNoPTax(premium, rate);
-    } else if (method === 'P.taxed'){
+    } else {
       result = calculatePTaxed(premium, rate);
     }
 
@@ -693,24 +777,30 @@
     breakdownBox.innerHTML = rows;
     breakdownBox.classList.remove('open');
     detailsToggle.classList.remove('open');
+    detailsToggle.setAttribute('aria-expanded', 'false');
 
-    inputScreen.style.display = 'none';
-    resultScreen.style.display = 'block';
+    inputScreen.hidden = true;
+    resultScreen.hidden = false;
+    backBtn.focus();
   });
 
   detailsToggle.addEventListener('click', () => {
-    breakdownBox.classList.toggle('open');
-    detailsToggle.classList.toggle('open');
+    const open = breakdownBox.classList.toggle('open');
+    detailsToggle.classList.toggle('open', open);
+    detailsToggle.setAttribute('aria-expanded', String(open));
   });
 
   backBtn.addEventListener('click', () => {
-    resultScreen.style.display = 'none';
-    inputScreen.style.display = 'block';
+    resultScreen.hidden = true;
+    inputScreen.hidden = false;
+    premiumInput.focus();
   });
 
   premiumInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') generateBtn.click();
+    if (e.key === 'Enter' && !generateBtn.disabled) generateBtn.click();
   });
+
+  refresh();
 </script>
 
 </body>
