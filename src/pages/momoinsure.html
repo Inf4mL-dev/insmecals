@@ -28,6 +28,7 @@
 }
 
 *{box-sizing:border-box;}
+[hidden]{display:none !important;}
 html,body{margin:0;padding:0;}
 body{
   font-family:var(--font-body);
@@ -39,7 +40,8 @@ body{
   min-height:100vh;
   padding:36px 18px 60px;
 }
-.wrap{max-width:760px;margin:0 auto;}
+.wrap{max-width:560px;margin:0 auto;}
+:focus-visible{outline:2px solid var(--brand-1);outline-offset:2px;}
 
 /* header */
 .masthead{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
@@ -51,14 +53,6 @@ body{
 .masthead-text{flex:1;}
 .masthead-text .tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--shade-15);font-weight:700;}
 .masthead-text .member{font-size:11px;color:var(--grey-text);margin-top:1px;}
-
-.hero{margin:26px 0 30px;}
-.hero h1{
-  font-size:28px;margin:0 0 6px;font-weight:800;
-  background:linear-gradient(90deg, var(--brand-2), var(--mix-even));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.hero p{margin:0;color:var(--grey-text);font-size:14px;line-height:1.5;max-width:520px;}
 
 /* landing view */
 #build-view{display:none;}
@@ -75,18 +69,21 @@ body{
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .landing-card p{margin:0 auto 26px;color:var(--grey-text);font-size:14px;line-height:1.55;max-width:400px;}
+.landing-card .btn{width:100%;max-width:320px;}
 
-/* wizard */
+/* wizard header: step chunks (Miller) + progress (goal gradient) */
 .wizard-topbar{
-  display:flex;justify-content:space-between;align-items:center;
-  margin:26px 0 14px;font-size:12px;font-weight:700;color:var(--shade-15);
-  letter-spacing:0.4px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin:26px 0 12px;font-size:13px;font-weight:600;color:var(--shade-15);
 }
 .wizard-topbar .covers-count-wrap{
-  background:var(--tint-12);color:var(--brand-2);border-radius:20px;padding:5px 12px;
+  background:var(--tint-12);color:var(--brand-2);border-radius:20px;padding:6px 12px;
+  font-size:12px;font-weight:700;white-space:nowrap;
 }
-.wizard-progress-bar{height:4px;background:var(--grey-border);border-radius:4px;margin-bottom:22px;overflow:hidden;}
-.wizard-progress-fill{height:100%;background:linear-gradient(90deg, var(--brand-1), var(--brand-2));transition:width .25s ease;width:25%;}
+.step-track{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:22px;}
+.step-seg{height:6px;border-radius:6px;background:var(--grey-border);transition:background .25s ease;}
+.step-seg.done{background:var(--brand-1);}
+.step-seg.current{background:var(--tint-45);}
 
 /* card */
 .card{
@@ -94,51 +91,58 @@ body{
   border-radius:12px;padding:26px 24px;box-shadow:0 10px 30px rgba(14,31,46,0.06);
 }
 
-.group-label{
-  font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--shade-15);
-  font-weight:700;margin:22px 0 10px;
-}
-.group-label:first-child{margin-top:0;}
+.step-title{font-size:20px;font-weight:700;margin:0 0 4px;color:var(--ink);}
+.step-desc{font-size:13.5px;color:var(--grey-text);line-height:1.5;margin:0 0 20px;}
 
-.field{
-  border:1.5px dashed var(--grey-border);
-  border-radius:8px;
-  padding:14px 16px;
-  margin-bottom:12px;
-  transition:border-color .2s ease, background .2s ease, opacity .2s ease;
+.field{margin-bottom:20px;}
+.field:last-child{margin-bottom:0;}
+.field-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px;}
+.field label,.field .field-label{font-size:14px;font-weight:600;color:var(--ink);}
+.field .status{
+  font-size:12px;font-weight:700;color:var(--brand-2);
+  opacity:0;transition:opacity .15s ease;
+}
+.field.active .status{opacity:1;}
+.field .row{
+  display:flex;align-items:stretch;
+  border:1.5px solid var(--grey-border);border-radius:10px;
   background:var(--surface-soft);
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
-.field.active{
-  border-style:solid;
-  border-color:var(--brand-1);
-  background: var(--tint-06);
+.field .row:focus-within{
+  border-color:var(--brand-1);background:var(--surface-card);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--brand-1) 18%, transparent);
 }
-.field label{
-  display:block;font-size:13.5px;font-weight:600;margin-bottom:8px;color:var(--ink);
-}
-.field .row{display:flex;align-items:center;gap:8px;}
+.field.active .row{border-color:var(--tint-45);}
 .field .prefix{
+  display:flex;align-items:center;padding:0 12px;
   font-family:var(--font-mono);font-size:13px;color:var(--grey-text);
-  background:var(--surface-card);border:1px solid var(--grey-border);border-radius:6px;padding:9px 10px;
+  border-right:1.5px solid var(--grey-border);
 }
-.field.active .prefix{color:var(--brand-2);border-color:var(--tint-45);}
-.field input[type=number]{
-  flex:1;font-family:var(--font-mono);font-size:15px;
-  border:1px solid var(--grey-border);border-radius:6px;padding:9px 12px;
-  background:var(--surface-card);color:var(--ink);outline:none;transition:border-color .2s ease;
+.field.active .prefix{color:var(--brand-2);}
+.field input.sum-input{
+  flex:1;min-width:0;min-height:52px;font-family:var(--font-mono);font-size:17px;
+  border:none;background:transparent;padding:12px 14px;color:var(--ink);outline:none;
 }
-.field input[type=number]:focus{border-color:var(--brand-1);}
-.field.active input[type=number]{border-color:var(--tint-45);}
-.field select{
-  width:100%;font-family:var(--font-ui);font-size:14px;
-  border:1px solid var(--grey-border);border-radius:6px;padding:9px 12px;
-  background:var(--surface-card);color:var(--ink);outline:none;transition:border-color .2s ease;
-  cursor:pointer;
+.field .hint{font-size:12px;color:var(--grey-text);margin-top:7px;line-height:1.5;}
+
+/* premises type cards (Hick: three taps, no dropdown) */
+.type-cards{display:flex;flex-direction:column;gap:10px;}
+.type-card{
+  appearance:none;text-align:left;cursor:pointer;
+  display:flex;flex-direction:column;gap:3px;
+  padding:13px 16px;min-height:56px;
+  border:1.5px solid var(--grey-border);border-radius:10px;
+  background:var(--surface-soft);color:var(--ink);font-family:var(--font-ui);
+  transition:border-color .15s ease, background .15s ease;
 }
-.field select:focus{border-color:var(--brand-1);}
-.field.active select{border-color:var(--tint-45);}
-.field .status{font-size:11px;color:var(--grey-text);margin-top:6px;}
-.field.active .status{color:var(--brand-2);font-weight:600;}
+.type-card:hover{border-color:var(--tint-45);}
+.type-card .type-name{font-size:14.5px;font-weight:700;}
+.type-card .type-desc{font-size:12.5px;line-height:1.45;color:var(--grey-text);}
+.type-card[aria-checked="true"]{
+  border-color:var(--brand-1);background:var(--tint-12);
+}
+.type-card[aria-checked="true"] .type-name{color:var(--brand-2);}
 
 /* validation banner */
 .banner{
@@ -148,56 +152,77 @@ body{
 }
 .banner.show{display:block;}
 
-/* calculate button */
-.actions{margin-top:20px;display:flex;justify-content:flex-end;align-items:center;}
-#prev-btn{margin-right:auto;}
+/* actions (Fitts: one big full-width primary, quiet Back) */
+.actions{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.cta-hint{font-size:12.5px;color:var(--grey-text);margin:2px 0 4px;min-height:1.2em;text-align:center;}
 .btn{
-  font-family:var(--font-ui);font-weight:700;font-size:14.5px;
-  border:none;border-radius:8px;padding:13px 26px;cursor:pointer;
-  transition:transform .15s ease, box-shadow .2s ease, filter .15s ease;
+  font-family:var(--font-ui);font-weight:700;font-size:15px;
+  border:none;border-radius:10px;padding:14px 26px;min-height:54px;cursor:pointer;
+  transition:transform .15s ease, box-shadow .2s ease, filter .15s ease, opacity .15s ease;
 }
+.btn-block{width:100%;}
 .btn-primary{
   color:#fff;
   background:linear-gradient(135deg, var(--brand-1), var(--brand-2));
   box-shadow:0 6px 16px color-mix(in srgb, var(--brand-2) 35%, transparent);
 }
-.btn-primary:hover{
-  transform:translateY(-2px) scale(1.015);
+.btn-primary:hover:not(:disabled){
+  transform:translateY(-2px);
   box-shadow:0 10px 22px color-mix(in srgb, var(--brand-2) 45%, transparent);
   filter:brightness(1.05);
-  cursor:pointer;
 }
-.btn-primary:active{transform:translateY(0) scale(0.99);}
+.btn-primary:active:not(:disabled){transform:translateY(0);}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
 
 .btn-secondary{
   background:var(--surface-card);color:var(--brand-2);border:1.5px solid var(--tint-45);
 }
-.btn-secondary:hover{background:var(--tint-06);border-color:var(--brand-1);cursor:pointer;}
+.btn-secondary:hover{background:var(--tint-06);border-color:var(--brand-1);}
 
-.btn-text{background:none;color:var(--grey-text);padding:13px 10px;}
-.btn-text:hover{color:var(--brand-2);cursor:pointer;}
+.btn-text{background:none;color:var(--grey-text);padding:10px 14px;min-height:44px;font-size:14px;}
+.btn-text:hover{color:var(--brand-2);}
 
-/* response view */
+/* response view (Von Restorff: the premium is the one loud element) */
 #response-view{display:none;}
 .result-card{
   background:linear-gradient(135deg, var(--shade-15), var(--brand-2));
-  border-radius:12px;padding:30px 26px;color:#fff;text-align:center;
+  border-radius:12px;padding:30px 24px 26px;color:#fff;text-align:center;
   box-shadow:0 14px 32px color-mix(in srgb, var(--brand-2) 40%, transparent);
+  margin-top:26px;
 }
-.result-card .label{font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:0.85;}
-.result-card .amount{font-family:var(--font-mono);font-size:38px;font-weight:700;margin:10px 0 4px;}
+.result-card .label{font-size:13px;opacity:0.85;font-weight:600;}
+.result-card .amount{font-family:var(--font-mono);font-size:40px;font-weight:700;margin:10px 0 4px;}
 .result-card .amount span{font-size:16px;opacity:0.85;margin-right:6px;}
-.duration-row{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px;}
-.duration-row label{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:0.85;}
-.duration-row select{
-  font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--brand-2);
-  background:#fff;border:none;border-radius:20px;padding:7px 14px;cursor:pointer;outline:none;
-}
-.fy-note{font-size:11px;opacity:0.75;margin-top:6px;}
-.covers-list{margin-top:16px;font-size:12.5px;opacity:0.9;line-height:1.7;}
-.covers-list .cover-item{display:inline-block;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;margin:3px;}
+.fy-note{font-size:12px;opacity:0.8;min-height:1.2em;}
 
-.response-actions{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+.duration-block{margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.2);}
+.duration-block .dur-label{font-size:12.5px;opacity:0.85;margin-bottom:10px;font-weight:600;}
+.dur-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.dur-chip{
+  appearance:none;min-width:48px;min-height:44px;padding:0 14px;border-radius:22px;
+  border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:#fff;
+  font-family:var(--font-ui);font-size:14px;font-weight:700;cursor:pointer;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+.dur-chip:hover{border-color:#fff;}
+.dur-chip[aria-checked="true"]{background:#fff;color:var(--brand-2);border-color:#fff;}
+#duration-select{
+  margin-top:12px;font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--brand-2);
+  background:#fff;border:none;border-radius:22px;padding:10px 16px;min-height:44px;cursor:pointer;outline:none;
+}
+
+.covers-card{margin-top:16px;padding:8px 22px;}
+.covers-card h2{font-size:14px;font-weight:700;color:var(--grey-text);margin:14px 0 4px;}
+.cover-row{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+  padding:14px 0;border-bottom:1px solid var(--grey-border);
+}
+.cover-row:last-child{border-bottom:none;}
+.cover-row .name{font-weight:600;font-size:14.5px;}
+.cover-row .si{font-size:12px;color:var(--grey-text);margin-top:3px;font-family:var(--font-mono);}
+.cover-row .amt{font-family:var(--font-mono);font-weight:700;font-size:14.5px;text-align:right;white-space:nowrap;}
+
+.response-actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:22px;}
 
 /* modal */
 .modal-overlay{
@@ -209,24 +234,34 @@ body{
   background:var(--surface-card);border-radius:12px;padding:26px 24px;max-width:420px;width:100%;
   box-shadow:0 20px 50px rgba(0,0,0,0.3);
 }
-.modal h3{margin:0 0 4px;font-size:17px;color:var(--brand-2);}
-.modal p{margin:0 0 18px;font-size:12.5px;color:var(--grey-text);}
-.modal .field{background:var(--surface-card);}
-.modal .field label{font-size:12.5px;}
-.modal .field input[type=text]{
-  width:100%;font-family:var(--font-ui);font-size:14px;padding:10px 12px;
-  border:1px solid var(--grey-border);border-radius:6px;outline:none;
+.modal h3{margin:0 0 4px;font-size:18px;color:var(--brand-2);}
+.modal > p{margin:0 0 16px;font-size:13px;color:var(--grey-text);}
+.mfield{margin-bottom:14px;}
+.mfield label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+.mfield input{
+  width:100%;min-height:48px;font-family:var(--font-ui);font-size:15px;padding:10px 12px;
+  border:1.5px solid var(--grey-border);border-radius:10px;outline:none;
+  background:var(--surface-soft);color:var(--ink);
+  transition:border-color .15s ease, background .15s ease;
 }
-.modal .field input[type=text]:focus, .modal .field input[type=tel]:focus{border-color:var(--brand-1);}
-.modal .field input[type=tel]{
-  width:100%;font-family:var(--font-mono);font-size:14px;padding:10px 12px;
-  border:1px solid var(--grey-border);border-radius:6px;outline:none;
-}
-.modal .field .hint{font-size:10.5px;color:var(--grey-text);margin-top:5px;}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+.mfield input[type=tel]{font-family:var(--font-mono);}
+.mfield input:focus{border-color:var(--brand-1);background:var(--surface-card);}
+.mfield .hint{font-size:12px;color:var(--grey-text);margin-top:5px;}
+.modal-actions{display:flex;gap:8px;margin-top:18px;}
+.modal-actions .btn-text{flex:0 0 auto;}
+.modal-actions .btn-primary{flex:1;}
 
 /* print-only quote sheet */
 #print-area{display:none;}
+
+@media (max-width:480px){
+  body{padding:24px 14px 48px;}
+  .card{padding:22px 18px;}
+  .result-card .amount{font-size:34px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;}
+}
 
 @media print{
   body *{visibility:hidden;}
@@ -280,92 +315,104 @@ body{
     <div class="landing-icon">₵</div>
     <h1>Hello! Welcome to the MomoInsure Calculator</h1>
     <p>Get an instant premium estimate for your agent cover — Fire, Money, Public Liability, and Personal Accident — one section at a time.</p>
-    <button class="btn btn-primary" id="get-quote-btn">Get a Quote</button>
+    <button class="btn btn-primary" id="get-quote-btn" type="button">Get a Quote</button>
   </div>
 
   <!-- BUILD VIEW (WIZARD) -->
   <div id="build-view">
 
     <div class="wizard-topbar">
-      <div>Step <span id="step-current">1</span> of 4</div>
-      <div class="covers-count-wrap"><span id="covers-count">0</span> cover(s) selected</div>
+      <div>Step <span id="step-current">1</span> of 4 · <span id="step-name">Fire &amp; Burglary</span></div>
+      <div class="covers-count-wrap"><span id="covers-count">0</span> added</div>
     </div>
-    <div class="wizard-progress-bar"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
+    <div class="step-track" id="step-track" aria-hidden="true">
+      <div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div><div class="step-seg"></div>
+    </div>
 
     <div class="card">
 
       <div class="step" data-step="1">
-        <div class="group-label">Section 1 — Fire &amp; Burglary</div>
+        <h2 class="step-title">Fire &amp; Burglary</h2>
+        <p class="step-desc">Add a sum insured to include this cover, or skip it.</p>
         <div class="field" data-id="fire">
-          <label>Sum Insured</label>
+          <div class="field-head"><label for="in-fire">Sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
-            <input type="number" min="0" step="100" data-id="fire" class="sum-input" placeholder="0.00">
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-fire" data-id="fire" class="sum-input" placeholder="0.00">
           </div>
-          <div class="status">Not selected</div>
         </div>
       </div>
 
       <div class="step" data-step="2" style="display:none;">
-        <div class="group-label">Section 2 — Money Insurance</div>
+        <h2 class="step-title">Money Insurance</h2>
+        <p class="step-desc">Required. Choose the premises type, then enter Hold Up, Cash in Transit, or both.</p>
+
         <div class="field" data-id="premtype">
-          <label>Premises Type</label>
-          <select id="premises-type" class="type-select">
-            <option value="">Select a type…</option>
-            <option value="A">Type A — Sandcrete/cement block construction, locked, with CCTV and an on-site safe</option>
-            <option value="B">Type B — Container, wood, or metal construction, with no safe and no CCTV</option>
-            <option value="C">Type C — Fully open-air operation (e.g. under a tent) with no fixed structure; cash kept in a bag on the operator</option>
-          </select>
-          <div class="status">Not selected</div>
+          <div class="field-head"><span class="field-label" id="premtype-label">Premises type</span><span class="status">Chosen ✓</span></div>
+          <input type="hidden" id="premises-type" value="">
+          <div class="type-cards" id="type-cards" role="radiogroup" aria-labelledby="premtype-label">
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="A">
+              <span class="type-name">Type A</span>
+              <span class="type-desc">Sandcrete/cement block construction, locked, with CCTV and an on-site safe</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="B">
+              <span class="type-name">Type B</span>
+              <span class="type-desc">Container, wood, or metal construction, with no safe and no CCTV</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="C">
+              <span class="type-name">Type C</span>
+              <span class="type-desc">Fully open-air operation (e.g. under a tent) with no fixed structure; cash kept in a bag on the operator</span>
+            </button>
+          </div>
         </div>
+
         <div class="field" data-id="holdup">
-          <label>Hold Up — Sum Insured</label>
+          <div class="field-head"><label for="in-holdup">Hold Up — sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
-            <input type="number" min="0" step="100" data-id="holdup" class="sum-input" placeholder="0.00">
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-holdup" data-id="holdup" class="sum-input" placeholder="0.00">
           </div>
-          <div class="status">Not selected</div>
         </div>
         <div class="field" data-id="transit">
-          <label>Cash in Transit — Sum Insured</label>
+          <div class="field-head"><label for="in-transit">Cash in Transit — sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
-            <input type="number" min="0" step="100" data-id="transit" class="sum-input" placeholder="0.00">
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-transit" data-id="transit" class="sum-input" placeholder="0.00">
           </div>
-          <div class="status">Not selected</div>
         </div>
       </div>
 
       <div class="step" data-step="3" style="display:none;">
-        <div class="group-label">Section 3 — Public Liability</div>
+        <h2 class="step-title">Public Liability</h2>
+        <p class="step-desc">Add a sum insured to include this cover, or skip it.</p>
         <div class="field" data-id="liability">
-          <label>Sum Insured</label>
+          <div class="field-head"><label for="in-liability">Sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
-            <input type="number" min="0" step="100" data-id="liability" class="sum-input" placeholder="0.00">
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-liability" data-id="liability" class="sum-input" placeholder="0.00">
           </div>
-          <div class="status">Not selected</div>
         </div>
       </div>
 
       <div class="step" data-step="4" style="display:none;">
-        <div class="group-label">Section 4 — Personal Accident Cover</div>
+        <h2 class="step-title">Personal Accident</h2>
+        <p class="step-desc">Last step. Add a sum insured to include this cover, or leave it blank.</p>
         <div class="field" data-id="pa">
-          <label>Sum Insured</label>
+          <div class="field-head"><label for="in-pa">Sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
-            <input type="number" min="0" step="100" data-id="pa" class="sum-input" placeholder="0.00">
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-pa" data-id="pa" class="sum-input" placeholder="0.00">
           </div>
-          <div class="status">Not selected</div>
         </div>
       </div>
 
-      <div id="banner" class="banner"></div>
+      <div id="banner" class="banner" role="alert"></div>
 
       <div class="actions">
-        <button class="btn btn-secondary" id="prev-btn" style="display:none;">&larr; Prev</button>
-        <button class="btn btn-primary" id="next-btn">Next</button>
-        <button class="btn btn-primary" id="generate-btn" style="display:none;">Generate</button>
+        <button class="btn btn-primary btn-block" id="next-btn" type="button">Next</button>
+        <button class="btn btn-primary btn-block" id="generate-btn" type="button" style="display:none;">Generate premium</button>
+        <p class="cta-hint" id="cta-hint" aria-live="polite"></p>
+        <button class="btn btn-text" id="prev-btn" type="button" style="display:none;">&larr; Back</button>
       </div>
     </div>
   </div>
@@ -373,11 +420,21 @@ body{
   <!-- RESPONSE VIEW -->
   <div id="response-view">
     <div class="result-card">
-      <div class="label">Premium Payable</div>
+      <div class="label">Premium payable</div>
       <div class="amount"><span>GHS</span><span id="total-amt">0.00</span></div>
-      <div class="duration-row">
-        <label for="duration-select">Cover Duration</label>
-        <select id="duration-select">
+      <div class="fy-note" id="fy-note"></div>
+
+      <div class="duration-block">
+        <div class="dur-label" id="dur-label">Cover duration (months)</div>
+        <div class="dur-chips" id="dur-chips" role="radiogroup" aria-labelledby="dur-label">
+          <button type="button" class="dur-chip" role="radio" aria-checked="false" data-months="1">1</button>
+          <button type="button" class="dur-chip" role="radio" aria-checked="false" data-months="3">3</button>
+          <button type="button" class="dur-chip" role="radio" aria-checked="false" data-months="6">6</button>
+          <button type="button" class="dur-chip" role="radio" aria-checked="false" data-months="9">9</button>
+          <button type="button" class="dur-chip" role="radio" aria-checked="true" data-months="12">12</button>
+          <button type="button" class="dur-chip" role="radio" aria-checked="false" id="dur-other">Other</button>
+        </div>
+        <select id="duration-select" aria-label="Cover duration in months" hidden>
           <option value="12">12 Months (1 Year)</option>
           <option value="11">11 Months</option>
           <option value="10">10 Months</option>
@@ -392,12 +449,16 @@ body{
           <option value="1">1 Month</option>
         </select>
       </div>
-      <div class="fy-note" id="fy-note"></div>
-      <div class="covers-list" id="covers-list"></div>
     </div>
+
+    <div class="card covers-card">
+      <h2>Covers included</h2>
+      <div id="covers-list"></div>
+    </div>
+
     <div class="response-actions">
-      <button class="btn btn-primary" id="print-btn">Print Quote</button>
-      <button class="btn btn-text" id="back-btn">&larr; Back to calculator</button>
+      <button class="btn btn-primary btn-block" id="print-btn" type="button">Print quote</button>
+      <button class="btn btn-text" id="back-btn" type="button">&larr; Back to calculator</button>
     </div>
   </div>
 
@@ -405,17 +466,17 @@ body{
 
 <!-- DETAILS MODAL -->
 <div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h3>A few details for the quote</h3>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title">A few details for the quote</h3>
     <p>These appear on the printed MomoInsure quotation.</p>
-    <div class="field"><label>Insured Name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
-    <div class="field"><label>Contact</label><input type="tel" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
-    <div class="field"><label>Shop Location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
-    <div class="field"><label>Agent's Code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
-    <div id="modal-banner" class="banner"></div>
+    <div class="mfield"><label for="f-name">Insured name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
+    <div class="mfield"><label for="f-contact">Contact</label><input type="tel" inputmode="numeric" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div class="mfield"><label for="f-location">Shop location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
+    <div class="mfield"><label for="f-code">Agent's code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
+    <div id="modal-banner" class="banner" role="alert"></div>
     <div class="modal-actions">
-      <button class="btn btn-text" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="modal-generate">Generate &amp; Print</button>
+      <button class="btn btn-text" id="modal-cancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="modal-generate" type="button">Generate &amp; print</button>
     </div>
   </div>
 </div>
@@ -499,6 +560,8 @@ const SECTIONS = [
   { id:'pa',        label:'Section 4 — Personal Accident Cover',     rate:0.0025 },
 ];
 
+const STEP_NAMES = { 1:'Fire & Burglary', 2:'Money Insurance', 3:'Public Liability', 4:'Personal Accident' };
+
 // Premises Type rates (Money Insurance only) — internal, never shown in the UI
 const TYPE_RATES = { A:0.005, B:0.0075, C:0.01 };
 const TYPE_DESCRIPTIONS = {
@@ -509,122 +572,204 @@ const TYPE_DESCRIPTIONS = {
 
 let lastResult = null; // { lines:[{label,sum,premium}], total, premisesType }
 
+const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('en-GH', {minimumFractionDigits:2, maximumFractionDigits:2});
+const parseNum = v => parseFloat(String(v).replace(/,/g,'')) || 0;
+const sumOf = id => parseNum(document.querySelector(`.sum-input[data-id="${id}"]`).value);
+
+// ---- comma-formatted number inputs ----
+function attachCommaFormat(input, maxDecimals){
+  input.addEventListener('input', () => {
+    const old = input.value;
+    const caret = input.selectionStart === null ? old.length : input.selectionStart;
+
+    // Digits/dots to the right of the caret stay constant while commas change.
+    let after = 0;
+    for (let i = caret; i < old.length; i++) if (/[\d.]/.test(old[i])) after++;
+
+    let raw = old.replace(/[^\d.]/g, '');
+    const dot = raw.indexOf('.');
+    if (dot !== -1) raw = raw.slice(0, dot + 1) + raw.slice(dot + 1).replace(/\./g, '');
+
+    let intPart = dot === -1 ? raw : raw.slice(0, dot);
+    let decPart = dot === -1 ? null : raw.slice(dot + 1, dot + 1 + maxDecimals);
+
+    intPart = intPart.replace(/^0+(?=\d)/, '');
+    if (intPart === '' && decPart !== null) intPart = '0';
+
+    const out = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (decPart !== null ? '.' + decPart : '');
+    input.value = out;
+
+    let pos = out.length, seen = 0;
+    while (pos > 0 && seen < after) {
+      pos--;
+      if (/[\d.]/.test(out[pos])) seen++;
+    }
+    if (document.activeElement === input) input.setSelectionRange(pos, pos);
+  });
+}
 
 // logo fallback
-document.getElementById('logo-img').addEventListener('error', function(){
+$('logo-img').addEventListener('error', function(){
   this.style.display='none';
-  document.getElementById('logo-fallback').style.display='inline-block';
+  $('logo-fallback').style.display='inline-block';
 });
 
 // ---- view routing ----
 const VIEW_IDS = ['landing-view','build-view','response-view'];
 function showView(id){
   VIEW_IDS.forEach(v => {
-    document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
+    $(v).style.display = (v === id) ? 'block' : 'none';
   });
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ---- wizard state ----
 const TOTAL_STEPS = 4;
 let currentStep = 1;
 
-function updateCoversCount(){
-  const count = SECTIONS.filter(s => (parseFloat(document.querySelector(`.sum-input[data-id="${s.id}"]`).value) || 0) > 0).length;
-  document.getElementById('covers-count').textContent = count;
+function coverCount(){
+  return SECTIONS.filter(s => sumOf(s.id) > 0).length;
+}
+
+function moneyReady(){
+  return (sumOf('holdup') > 0 || sumOf('transit') > 0) && !!$('premises-type').value;
+}
+
+function quoteReady(){
+  return coverCount() >= 2 && moneyReady();
+}
+
+function stepHasValue(n){
+  if(n === 1) return sumOf('fire') > 0;
+  if(n === 3) return sumOf('liability') > 0;
+  if(n === 4) return sumOf('pa') > 0;
+  return moneyReady();
+}
+
+function updateNav(){
+  const next = $('next-btn');
+  const gen = $('generate-btn');
+  const hint = $('cta-hint');
+  const n = currentStep;
+
+  if(n === 2){
+    const hasSum = sumOf('holdup') > 0 || sumOf('transit') > 0;
+    const hasType = !!$('premises-type').value;
+    next.disabled = !(hasSum && hasType);
+    next.textContent = 'Next';
+    hint.textContent = !hasType ? 'Choose a premises type to continue.'
+      : !hasSum ? 'Enter a Hold Up or Cash in Transit sum insured.'
+      : 'Money Insurance is set.';
+  } else if(n === 4){
+    gen.disabled = !quoteReady();
+    const count = coverCount();
+    hint.textContent = quoteReady() ? `Ready: ${count} covers included.`
+      : 'A quote needs Money Insurance plus at least one other cover. Add one here or go back.';
+  } else {
+    next.disabled = false;
+    next.textContent = stepHasValue(n) ? 'Next' : 'Skip this cover';
+    hint.textContent = stepHasValue(n) ? 'Cover added.' : 'Optional. You can add it later.';
+  }
+
+  // field state + counter
+  document.querySelectorAll('.sum-input').forEach(inp => {
+    const field = inp.closest('.field');
+    field.classList.toggle('active', parseNum(inp.value) > 0);
+  });
+  $('type-cards').closest('.field').classList.toggle('active', !!$('premises-type').value);
+  const count = coverCount();
+  $('covers-count').textContent = count + (count === 1 ? ' cover' : ' covers');
 }
 
 function showStep(n){
   document.querySelectorAll('.step').forEach(el => {
     el.style.display = (parseInt(el.dataset.step, 10) === n) ? 'block' : 'none';
   });
-  document.getElementById('step-current').textContent = n;
-  document.getElementById('wizard-progress-fill').style.width = `${(n / TOTAL_STEPS) * 100}%`;
-  document.getElementById('prev-btn').style.display = n === 1 ? 'none' : 'inline-block';
-  document.getElementById('next-btn').style.display = n === TOTAL_STEPS ? 'none' : 'inline-block';
-  document.getElementById('generate-btn').style.display = n === TOTAL_STEPS ? 'inline-block' : 'none';
+  $('step-current').textContent = n;
+  $('step-name').textContent = STEP_NAMES[n];
+  document.querySelectorAll('.step-seg').forEach((seg, i) => {
+    seg.classList.toggle('done', i + 1 < n);
+    seg.classList.toggle('current', i + 1 === n);
+  });
+  $('prev-btn').style.display = n === 1 ? 'none' : 'inline-block';
+  $('next-btn').style.display = n === TOTAL_STEPS ? 'none' : 'block';
+  $('generate-btn').style.display = n === TOTAL_STEPS ? 'block' : 'none';
   hideBanner();
-  updateCoversCount();
+  updateNav();
 }
 
-document.getElementById('get-quote-btn').addEventListener('click', ()=>{
+$('get-quote-btn').addEventListener('click', ()=>{
   currentStep = 1;
   showView('build-view');
   showStep(1);
 });
 
-document.getElementById('next-btn').addEventListener('click', ()=>{
+function goNext(){
   if(currentStep === 2){
-    const holdup = parseFloat(document.querySelector('.sum-input[data-id="holdup"]').value) || 0;
-    const transit = parseFloat(document.querySelector('.sum-input[data-id="transit"]').value) || 0;
-    if(holdup <= 0 && transit <= 0){
+    if(sumOf('holdup') <= 0 && sumOf('transit') <= 0){
       showBanner('Enter a sum insured for Hold Up or Cash in Transit to continue.');
       return;
     }
-    const premType = document.getElementById('premises-type').value;
-    if(!premType){
+    if(!$('premises-type').value){
       showBanner('Select a Premises Type to continue.');
       return;
     }
   }
   currentStep = Math.min(currentStep + 1, TOTAL_STEPS);
   showStep(currentStep);
-});
+}
 
-document.getElementById('prev-btn').addEventListener('click', ()=>{
+$('next-btn').addEventListener('click', goNext);
+
+$('prev-btn').addEventListener('click', ()=>{
   currentStep = Math.max(currentStep - 1, 1);
   showStep(currentStep);
 });
 
-// grey-out / active state on the Premises Type dropdown
-document.getElementById('premises-type').addEventListener('change', ()=>{
-  const select = document.getElementById('premises-type');
-  const field = document.querySelector('.field[data-id="premtype"]');
-  const status = field.querySelector('.status');
-  if(select.value){
-    field.classList.add('active');
-    status.textContent = 'Selected';
-  } else {
-    field.classList.remove('active');
-    status.textContent = 'Not selected';
-  }
+// premises type cards
+$('type-cards').addEventListener('click', (e)=>{
+  const card = e.target.closest('.type-card');
+  if(!card) return;
+  $('premises-type').value = card.dataset.type;
+  document.querySelectorAll('#type-cards .type-card').forEach(c => c.setAttribute('aria-checked', String(c === card)));
+  hideBanner();
+  updateNav();
 });
 
-// grey-out / active state on input, plus live counter
+// number inputs: commas, live state, Enter to continue
 document.querySelectorAll('.sum-input').forEach(input=>{
-  input.addEventListener('input', ()=>{
-    const field = document.querySelector(`.field[data-id="${input.dataset.id}"]`);
-    const status = field.querySelector('.status');
-    const val = parseFloat(input.value);
-    if(val > 0){
-      field.classList.add('active');
-      status.textContent = 'Selected';
-    } else {
-      field.classList.remove('active');
-      status.textContent = 'Not selected';
+  attachCommaFormat(input, 2);
+  input.addEventListener('input', ()=>{ hideBanner(); updateNav(); });
+  input.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    if(currentStep === TOTAL_STEPS){
+      if(!$('generate-btn').disabled) $('generate-btn').click();
+    } else if(!$('next-btn').disabled){
+      goNext();
     }
-    updateCoversCount();
   });
 });
 
 function getSelections(){
-  const premType = document.getElementById('premises-type').value;
+  const premType = $('premises-type').value;
   return SECTIONS
     .map(s => ({
       ...s,
       rate: s.group === 'money' ? (TYPE_RATES[premType] || 0) : s.rate,
-      sum: parseFloat(document.querySelector(`.sum-input[data-id="${s.id}"]`).value) || 0
+      sum: sumOf(s.id)
     }))
     .filter(s => s.sum > 0);
 }
 
 function showBanner(msg){
-  const b = document.getElementById('banner');
+  const b = $('banner');
   b.textContent = msg;
   b.classList.add('show');
 }
 function hideBanner(){
-  document.getElementById('banner').classList.remove('show');
+  $('banner').classList.remove('show');
 }
 
 function computeChargedPremium(fy, months){
@@ -634,21 +779,51 @@ function computeChargedPremium(fy, months){
   return Math.min(proRata + loading, fy);
 }
 
-function renderPremiumForDuration(){
-  const months = parseInt(document.getElementById('duration-select').value, 10);
-  const charged = computeChargedPremium(lastResult.total, months);
-  document.getElementById('total-amt').textContent = fmt(charged);
-  document.getElementById('fy-note').textContent = months < 12
-    ? `Full Year Premium: GHS ${fmt(lastResult.total)}`
-    : '';
+// ---- duration: quick chips, full list under "Other" ----
+const QUICK_MONTHS = ['1','3','6','9','12'];
+let otherOpen = false;
+
+function syncDurationUI(){
+  const v = $('duration-select').value;
+  const isQuick = QUICK_MONTHS.includes(v);
+  const showOther = otherOpen || !isQuick;
+  document.querySelectorAll('#dur-chips .dur-chip[data-months]').forEach(c => {
+    c.setAttribute('aria-checked', String(!showOther && c.dataset.months === v));
+  });
+  $('dur-other').setAttribute('aria-checked', String(showOther));
+  $('duration-select').hidden = !showOther;
 }
 
-document.getElementById('duration-select').addEventListener('change', renderPremiumForDuration);
+function renderPremiumForDuration(){
+  const months = parseInt($('duration-select').value, 10);
+  const charged = computeChargedPremium(lastResult.total, months);
+  $('total-amt').textContent = fmt(charged);
+  $('fy-note').textContent = months < 12
+    ? `Full Year Premium: GHS ${fmt(lastResult.total)}`
+    : '';
+  syncDurationUI();
+}
 
-document.getElementById('generate-btn').addEventListener('click', ()=>{
+$('dur-chips').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.dur-chip');
+  if(!chip) return;
+  if(chip.id === 'dur-other'){
+    otherOpen = true;
+    syncDurationUI();
+    $('duration-select').focus();
+    return;
+  }
+  otherOpen = false;
+  $('duration-select').value = chip.dataset.months;
+  renderPremiumForDuration();
+});
+
+$('duration-select').addEventListener('change', renderPremiumForDuration);
+
+$('generate-btn').addEventListener('click', ()=>{
   const selected = getSelections();
   const hasMoney = selected.some(s => s.id === 'holdup' || s.id === 'transit');
-  const premType = document.getElementById('premises-type').value;
+  const premType = $('premises-type').value;
 
   if(selected.length < 2){
     showBanner('Select at least two covers before generating a quote.');
@@ -668,33 +843,43 @@ document.getElementById('generate-btn').addEventListener('click', ()=>{
   const total = lines.reduce((sum, l) => sum + l.premium, 0);
   lastResult = { lines, total, premisesType: premType };
 
-  document.getElementById('duration-select').value = '12';
+  $('duration-select').value = '12';
+  otherOpen = false;
   renderPremiumForDuration();
 
-  const coversList = document.getElementById('covers-list');
-  coversList.innerHTML = lines.map(l => `
-    <span class="cover-item">${l.label.replace(/^Section \d — /,'')} — GHS ${fmt(l.sum)} (Premium: GHS ${fmt(l.premium)})</span>
+  $('covers-list').innerHTML = lines.map(l => `
+    <div class="cover-row">
+      <div>
+        <div class="name">${l.label.replace(/^Section \d — /,'')}</div>
+        <div class="si">Sum insured: GHS ${fmt(l.sum)}</div>
+      </div>
+      <div class="amt">GHS ${fmt(l.premium)}</div>
+    </div>
   `).join('');
 
   showView('response-view');
 });
 
-document.getElementById('back-btn').addEventListener('click', ()=>{
+$('back-btn').addEventListener('click', ()=>{
   showView('build-view');
   showStep(currentStep);
 });
 
-document.getElementById('f-contact').addEventListener('input', (e)=>{
+$('f-contact').addEventListener('input', (e)=>{
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
 });
 
 // print modal
-const overlay = document.getElementById('modal-overlay');
-document.getElementById('print-btn').addEventListener('click', ()=>{
+const overlay = $('modal-overlay');
+$('print-btn').addEventListener('click', ()=>{
   overlay.classList.add('show');
+  $('f-name').focus();
 });
-document.getElementById('modal-cancel').addEventListener('click', ()=>{
+$('modal-cancel').addEventListener('click', ()=>{
   overlay.classList.remove('show');
+});
+overlay.addEventListener('click', (e)=>{
+  if(e.target === overlay) overlay.classList.remove('show');
 });
 
 function formatGhanaNumber(digits){
@@ -703,12 +888,12 @@ function formatGhanaNumber(digits){
   return `(+233) ${rest.slice(0,2)}-${rest.slice(2,5)}-${rest.slice(5,9)}`;
 }
 
-document.getElementById('modal-generate').addEventListener('click', ()=>{
-  const name = document.getElementById('f-name').value.trim();
-  const contactRaw = document.getElementById('f-contact').value.trim();
-  const location = document.getElementById('f-location').value.trim();
-  const code = document.getElementById('f-code').value.trim();
-  const mb = document.getElementById('modal-banner');
+$('modal-generate').addEventListener('click', ()=>{
+  const name = $('f-name').value.trim();
+  const contactRaw = $('f-contact').value.trim();
+  const location = $('f-location').value.trim();
+  const code = $('f-code').value.trim();
+  const mb = $('modal-banner');
 
   if(!name || !contactRaw || !location || !code){
     mb.textContent = 'Please fill in all four details.';
@@ -724,40 +909,40 @@ document.getElementById('modal-generate').addEventListener('click', ()=>{
 
   const contact = formatGhanaNumber(contactRaw);
 
-  document.getElementById('q-name').textContent = name;
-  document.getElementById('q-contact').textContent = contact;
-  document.getElementById('q-location').textContent = location;
-  document.getElementById('q-code').textContent = code;
+  $('q-name').textContent = name;
+  $('q-contact').textContent = contact;
+  $('q-location').textContent = location;
+  $('q-code').textContent = code;
 
   const today = new Date();
   const issued = today.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
   const quoteNo = 'MI-' + today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0') + '-' + Math.floor(1000+Math.random()*9000);
-  document.getElementById('q-meta').textContent = `Date Issued: ${issued}`;
-  document.getElementById('q-reference').textContent = `Reference: ${quoteNo}`;
+  $('q-meta').textContent = `Date Issued: ${issued}`;
+  $('q-reference').textContent = `Reference: ${quoteNo}`;
 
-  const months = parseInt(document.getElementById('duration-select').value, 10);
+  const months = parseInt($('duration-select').value, 10);
   const charged = computeChargedPremium(lastResult.total, months);
   const durationLabel = months === 12 ? '12 Months (1 Year)' : (months === 1 ? '1 Month' : `${months} Months`);
-  document.getElementById('q-duration').textContent = `Cover Duration: ${durationLabel}`;
-  document.getElementById('q-total-label').textContent = durationLabel;
-  document.getElementById('q-total').textContent = fmt(charged);
+  $('q-duration').textContent = `Cover Duration: ${durationLabel}`;
+  $('q-total-label').textContent = durationLabel;
+  $('q-total').textContent = fmt(charged);
 
   const fyRow = document.querySelector('.q-fy-row');
   if(months < 12){
     fyRow.style.display = '';
-    document.getElementById('q-fy-total').textContent = fmt(lastResult.total);
+    $('q-fy-total').textContent = fmt(lastResult.total);
   } else {
     fyRow.style.display = 'none';
   }
 
-  document.getElementById('q-lines').innerHTML = lastResult.lines.map(l => `
+  $('q-lines').innerHTML = lastResult.lines.map(l => `
     <tr><td>${l.label}</td><td class="num">${fmt(l.sum)}</td><td class="num">${fmt(l.premium)}</td></tr>
   `).join('');
 
-  const premTypeRow = document.getElementById('q-premtype-row');
+  const premTypeRow = $('q-premtype-row');
   if(lastResult.premisesType){
     premTypeRow.style.display = '';
-    document.getElementById('q-premtype-value').textContent =
+    $('q-premtype-value').textContent =
       `${lastResult.premisesType} — ${TYPE_DESCRIPTIONS[lastResult.premisesType]}`;
   } else {
     premTypeRow.style.display = 'none';
