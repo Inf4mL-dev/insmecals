@@ -618,11 +618,11 @@
 
     <div class="info-panel" id="infoPanel">
       <h4>How this works</h4>
-      <p>Third Party Premium = Base TP rate + Extra Seat Loading (seats above 5) + Extra TPPDL loading (limits above GHC 8,000).</p>
-      <p>Own Damage = Sum Insured × rate (rate depends on cover type and ICE/EV). Excess Buy Back (only for 100% cover) = 10% of Own Damage for private vehicles, 15% for commercial vehicles.</p>
+      <p>Third Party Premium = Base TP rate + Extra Seat Loading (seats above 5) + Extra TPPDL loading (limits above GHC 8,000: GHC 10 per extra 1,000 for private vehicles, motorcycles and motor tricycles/quadricycles; GHC 20 per extra 1,000 for other commercial vehicles).</p>
+      <p>Own Damage = Sum Insured × rate (rate depends on cover type and ICE/EV). Excess Buy Back (only for 100% cover) = 10% of Own Damage for private vehicles, motorcycles and motor tricycles/quadricycles, and 15% for other commercial vehicles.</p>
       <ul>
         <li><strong>Third Party</strong> — Third Party Premium only</li>
-        <li><strong>Third Party Amplified</strong> — Third Party Premium + a fixed loading</li>
+        <li><strong>Third Party Amplified</strong> — Third Party Premium + a fixed loading (not available for motorcycles and motor tricycles/quadricycles)</li>
         <li><strong>Fire &amp; Theft / Comprehensive</strong> — Own Damage + Third Party Premium (90% cover), or Own Damage + Excess Buy Back + Third Party Premium (100% cover)</li>
       </ul>
     </div>
@@ -759,12 +759,12 @@
   <p class="footnote">Estimate only — final premium is subject to underwriting review.</p>
 </div>
 
-<!-- ERROR POPUP -->
+<!-- ERROR / WARNING POPUP -->
 <div class="modal-overlay" id="errorOverlay">
   <div class="modal-box" role="alertdialog" aria-modal="true" aria-labelledby="errorTitle">
     <div class="modal-icon">!</div>
     <h3 id="errorTitle">Missing information</h3>
-    <p class="modal-sub">Please fix the following before calculating:</p>
+    <p class="modal-sub" id="errorSub">Please fix the following before calculating:</p>
     <ul id="errorList"></ul>
     <button class="calc-btn" id="errorClose" type="button">Got it</button>
   </div>
@@ -856,6 +856,9 @@
 // ---------- Vehicle Type data ----------
 // type: Private / Commercial | TP: base third party premium
 // RC_ICE/RC_EV: comprehensive rate | RF_ICE/RF_EV: fire & theft rate | ES: extra seat loading rate
+// rateClass (optional): when set to "Private", the vehicle keeps its own type
+// (and its discount cap) but uses the private Excess Buy Back (10%) and the
+// private TPPDL loading (GHC 10 per extra 1,000).
 const VT_DATA = {
   "Private Individual":        { type:"Private",    TP:557,  RC_ICE:0.0500, RC_EV:0.0625, RF_ICE:0.0100, RF_EV:0.0125, ES:15.00 },
   "Private Corporate":         { type:"Commercial",  TP:557,  RC_ICE:0.0600, RC_EV:0.0750, RF_ICE:0.0150, RF_EV:0.0188, ES:15.00 },
@@ -864,8 +867,8 @@ const VT_DATA = {
   "Uber / Ride Hailing":        { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
   "Mini Bus":                   { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
   "Maxi Bus":                   { type:"Commercial",  TP:744,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0180, RF_EV:0.0225, ES:25.00 },
-  "Motor Cycle":                { type:"Commercial",  TP:331,  RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
-  "Motor Tricycle / Quadricycle": { type:"Commercial", TP:431, RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
+  "Motor Cycle":                { type:"Commercial",  rateClass:"Private", TP:331,  RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
+  "Motor Tricycle / Quadricycle": { type:"Commercial", rateClass:"Private", TP:431, RC_ICE:0.0300, RC_EV:0.0350, RF_ICE:0.0300, RF_EV:0.0350, ES:25.00 },
   "Ambulance / Hearse":         { type:"Commercial",  TP:733,  RC_ICE:0.0700, RC_EV:0.0875, RF_ICE:0.0150, RF_EV:0.0188, ES:15.00 },
   "Own Goods (Z.300)":          { type:"Commercial",  TP:761,  RC_ICE:0.0400, RC_EV:0.0500, RF_ICE:0.0100, RF_EV:0.0125, ES:25.00 },
   "Art / Tankers":               { type:"Commercial",  TP:1052, RC_ICE:0.0800, RC_EV:0.1000, RF_ICE:0.0200, RF_EV:0.0250, ES:25.00 },
@@ -884,6 +887,9 @@ const COVER_NAMES = {
   COMP:"Comprehensive"
 };
 
+// Vehicle types that cannot take Third Party Amplified cover.
+const AMPLIFIED_NOT_ALLOWED = ["Motor Cycle", "Motor Tricycle / Quadricycle"];
+const AMPLIFIED_MSG = "Third Party Amplified is not available for motorcycles and motor tricycle/Quadricycle";
 
 // Vehicle types grouped for the dropdown (Miller: chunked, scannable list)
 const VT_GROUPS = [
@@ -896,6 +902,12 @@ const VT_GROUPS = [
 
 const $ = id => document.getElementById(id);
 const parseNum = v => parseFloat(String(v).replace(/,/g,'')) || 0;
+
+// True when a vehicle should use the private EBB (10%) and TPPDL loading (GHC 10 per 1,000).
+function usesPrivateRates(vt){
+  if(!vt) return false;
+  return vt.rateClass ? vt.rateClass === "Private" : vt.type === "Private";
+}
 
 // ---------- Comma-formatted number inputs ----------
 // maxDecimals = 0 gives whole numbers only. maxInt caps the digits before the decimal point.
@@ -1062,15 +1074,53 @@ $('seatsPlus').addEventListener('click', ()=>{
   setSeats(Math.min(seatsValue() + 1, 999));
 });
 
+// ---------- Error / warning modal helper ----------
+// Defaults keep the original "Missing information" wording; pass a title and
+// subtitle to reuse the same popup as a plain warning.
+function showErrorModal(errors, title, sub){
+  $('errorTitle').textContent = title || 'Missing information';
+  $('errorSub').textContent = sub === undefined ? 'Please fix the following before calculating:' : sub;
+  $('errorSub').style.display = $('errorSub').textContent ? '' : 'none';
+  const list = $('errorList');
+  list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+  $('errorOverlay').classList.add('show');
+}
+
+// ---------- Third Party Amplified restriction ----------
+function selectedCover(){
+  const el = document.querySelector('input[name="cover"]:checked');
+  return el ? el.value : '';
+}
+function amplifiedBlocked(){
+  return selectedCover() === 'TPA' && AMPLIFIED_NOT_ALLOWED.includes(vtSelect.value);
+}
+
 // ---------- Cover and engine selection (radio inputs stay keyboard-focusable) ----------
 document.querySelectorAll('#enginePills input').forEach(input=>{
   input.addEventListener('change', ()=>{
     document.querySelectorAll('#enginePills .pill').forEach(x=>x.classList.toggle('active', x.contains(input)));
   });
 });
+
+let prevCover = 'TP';
+function setCover(val){
+  document.querySelectorAll('#coverGrid input').forEach(inp=>{
+    inp.checked = inp.value === val;
+    inp.closest('.cover-card').classList.toggle('active', inp.value === val);
+  });
+}
 document.querySelectorAll('#coverGrid input').forEach(input=>{
   input.addEventListener('change', ()=>{
-    document.querySelectorAll('#coverGrid .cover-card').forEach(x=>x.classList.toggle('active', x.contains(input)));
+    // Picking Amplified while a motorcycle / tricycle is already chosen:
+    // warn and put the previous cover back.
+    if(input.value === 'TPA' && AMPLIFIED_NOT_ALLOWED.includes(vtSelect.value)){
+      setCover(prevCover);
+      showErrorModal([AMPLIFIED_MSG], 'Cover not available', '');
+      syncCoverDependentFields();
+      return;
+    }
+    prevCover = input.value;
+    setCover(input.value);
     syncCoverDependentFields();
   });
 });
@@ -1081,8 +1131,7 @@ document.querySelectorAll('#coverGrid input').forEach(input=>{
 // Amplified both are hidden and the Sum Insured value is cleared so a stale
 // number can never reach the calculation or the printed quote.
 function coverNeedsSumInsured(){
-  const el = document.querySelector('input[name="cover"]:checked');
-  const cover = el ? el.value : '';
+  const cover = selectedCover();
   return cover === 'TPFT' || cover === 'COMP';
 }
 
@@ -1165,13 +1214,6 @@ function fmt(n){
   return n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// ---------- Error modal helper ----------
-function showErrorModal(errors){
-  const list = $('errorList');
-  list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
-  $('errorOverlay').classList.add('show');
-}
-
 // ---------- Step wizard ----------
 const STEP_LABELS = {
   1: "Step 1 of 3 · Cover type",
@@ -1185,9 +1227,12 @@ const stepBackBtn = $('stepBackBtn');
 // Continue / Calculate stay disabled until the step's required fields are filled.
 function refreshState(){
   const seats = seatsValue();
-  const ok2 = seats > 0;
+  const blocked = amplifiedBlocked();
+  const ok2 = seats > 0 && !blocked;
   $('step2Next').disabled = !ok2;
-  $('hint2').textContent = ok2 ? 'Looks good. Continue when ready.' : 'Enter the number of seats to continue.';
+  $('hint2').textContent = blocked
+    ? AMPLIFIED_MSG + '. Go back and choose another cover.'
+    : (ok2 ? 'Looks good. Continue when ready.' : 'Enter the number of seats to continue.');
 
   const needs = coverNeedsSumInsured();
   const ok3 = !needs || parseNum(sumInsuredEl.value) > 0;
@@ -1196,6 +1241,20 @@ function refreshState(){
 }
 seatsEl.addEventListener('input', refreshState);
 sumInsuredEl.addEventListener('input', refreshState);
+
+// Vehicle type changes: if Third Party Amplified is selected and the new
+// vehicle is a motorcycle / tricycle, warn and put the previous vehicle back.
+let prevVT = vtSelect.value;
+vtSelect.addEventListener('change', ()=>{
+  if(selectedCover() === 'TPA' && AMPLIFIED_NOT_ALLOWED.includes(vtSelect.value)){
+    vtSelect.value = prevVT;
+    populateDiscountOptions();
+    showErrorModal([AMPLIFIED_MSG], 'Vehicle not available', '');
+  } else {
+    prevVT = vtSelect.value;
+  }
+  refreshState();
+});
 
 // Keep the person's earlier choices visible so the steps feel like one task.
 function updateSummary(n){
@@ -1246,6 +1305,7 @@ function validateStep(step){
     const seats = seatsValue();
     if(raw === '' || isNaN(seats)) errors.push("Number of Seats is required");
     else if(seats <= 0) errors.push("Number of Seats must be at least 1");
+    if(amplifiedBlocked()) errors.push(AMPLIFIED_MSG);
   }
   return errors;
 }
@@ -1317,6 +1377,9 @@ $('calcBtn').addEventListener('click', ()=>{
   if(!cover){
     errors.push("Cover Type must be selected");
   }
+  if(cover === 'TPA' && AMPLIFIED_NOT_ALLOWED.includes(vtName)){
+    errors.push(AMPLIFIED_MSG);
+  }
   if(discountRaw !== '' && vt){
     const maxDiscount = vt.type === "Private" ? DISCOUNT_MAX_PRIVATE : DISCOUNT_MAX_COMMERCIAL;
     if(isNaN(D) || D < 0 || D > maxDiscount){
@@ -1329,8 +1392,12 @@ $('calcBtn').addEventListener('click', ()=>{
     return;
   }
 
+  // isPrivate drives the discount cap and the Amplified loading.
+  // privateRates drives the Excess Buy Back and the TPPDL loading, and is also
+  // true for motorcycles and motor tricycles/quadricycles.
   const isPrivate = vt.type === "Private";
-  const xPct = isPrivate ? 0.01 : 0.02;
+  const privateRates = usesPrivateRates(vt);
+  const xPct = privateRates ? 0.01 : 0.02;
   const ESL = seats > 5 ? (seats - 5) * vt.ES : 0;
   const XTPPDL = (tppdl - 8000) * xPct;
   const TPP = vt.TP + ESL + XTPPDL;
@@ -1366,7 +1433,7 @@ $('calcBtn').addEventListener('click', ()=>{
       ? (engine === "ICE" ? vt.RF_ICE : vt.RF_EV)
       : (engine === "ICE" ? vt.RC_ICE : vt.RC_EV);
     const ODBP = SI * R;
-    const EBBpct = isPrivate ? 0.10 : 0.15;
+    const EBBpct = privateRates ? 0.10 : 0.15;
     const EBB = ODBP * EBBpct;
     const discountAmt = ODBP * (D / 100);
 
@@ -1446,7 +1513,7 @@ $('calcBtn').addEventListener('click', ()=>{
   } else if(cover === "TPFT" || cover === "COMP"){
     const R = cover === "TPFT" ? (engine === "ICE" ? vt.RF_ICE : vt.RF_EV) : (engine === "ICE" ? vt.RC_ICE : vt.RC_EV);
     const ODBP = SI * R;
-    const EBBpct = isPrivate ? 0.10 : 0.15;
+    const EBBpct = privateRates ? 0.10 : 0.15;
     const EBB = ODBP * EBBpct;
     const discountAmt = ODBP * (D / 100);
     const final90 = ODBP + TPP - discountAmt;
