@@ -44,10 +44,10 @@
       fromRoot: "src/pages/commission.html",
     },
     {
-      file: "date-age.html",
-      label: "Date & Age",
-      fromPages: "date-age.html",
-      fromRoot: "src/pages/date-age.html",
+      file: "travel-insurance.html",
+      label: "Travel Insurance",
+      fromPages: "travel-insurance.html",
+      fromRoot: "src/pages/travel-insurance.html",
     },
     {
       file: "sme-insure.html",
