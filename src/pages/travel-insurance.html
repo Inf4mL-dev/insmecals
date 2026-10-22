@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Travel Insurance Quote</title>
+<script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="../assets/css/shared.css">
+<style>
+body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-body);padding:76px 16px 56px;line-height:1.5}
+.wrap{max-width:780px;margin:0 auto}
+h1{font-family:var(--font-heading);font-size:clamp(28px,5vw,40px);line-height:1.1;margin:6px 0 8px}
+.lead{color:var(--ink-soft);margin:0 0 14px}
+.rate{display:inline-block;font-family:var(--font-mono);font-size:13px;background:var(--tint);border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin:0 0 20px}
+.card{background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+label,.lbl{font-weight:600;font-size:14px}
+input[type=date],select{font:inherit;color:var(--ink);background:var(--surface-soft);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;box-sizing:border-box}
+input:focus-visible,select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85)}
+.err{color:var(--danger);font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-soft);align-self:flex-start}
+.seg label{position:relative;margin:0;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0}
+.seg span{display:block;padding:10px 26px;font-weight:600;color:var(--ink-soft)}
+.seg input:checked+span{background:var(--primary-dark);color:var(--white)}
+.seg input:focus-visible+span{outline:2px solid var(--primary);outline-offset:-3px}
+.summary{margin:26px 0 12px;font-size:15px;color:var(--ink-soft)}
+.summary b{color:var(--ink)}
+.hint{color:var(--ink-soft);margin:24px 2px 0}
+.plans{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.plan{display:flex;flex-direction:column;gap:8px}
+.plan h3{font-family:var(--font-heading);font-size:22px;margin:0}
+.price{font-family:var(--font-mono);font-size:28px;font-weight:600;color:var(--primary-dark);line-height:1.1}
+.usd,.note{font-size:13px;color:var(--ink-soft)}
+.usd{font-family:var(--font-mono)}
+.warn{background:var(--warning-tint);border:1px solid var(--warning);border-radius:8px;padding:8px 10px;font-size:13px}
+.btn{margin-top:auto;display:block;background:var(--primary-dark);color:var(--white);border-radius:10px;padding:12px;font-weight:700;text-align:center;text-decoration:none}
+.btn:hover{background:var(--primary)}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.nocover{background:var(--danger-tint);border:1px solid var(--danger);border-radius:var(--radius);padding:16px;font-weight:600}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+@media print{.btn{display:none}}
+</style>
+</head>
+<body>
+<script src="../assets/js/site-nav.js"></script>
+<main class="wrap">
+<header>
+<h1>Travel insurance quote</h1>
+<p class="lead">Enter your trip details to see the plans available to you.</p>
+<p class="rate" id="rate">Rate = …</p>
+</header>
+<section class="card grid" aria-label="Trip details">
+<div class="field"><label for="start">Trip start date</label><input type="date" id="start"><span class="err" id="e-start"></span></div>
+<div class="field"><label for="end">Trip end date</label><input type="date" id="end"><span class="err" id="e-end"></span></div>
+<div class="field"><label for="dob">Date of birth</label><input type="date" id="dob"><span class="err" id="e-dob"></span></div>
+<div class="field"><label for="country">Destination country</label><select id="country"><option value="">Select a country</option></select></div>
+<div class="field full"><span class="lbl" id="study-l">Is the purpose for study?</span>
+<div class="seg" role="radiogroup" aria-labelledby="study-l">
+<label><input type="radio" name="study" value="no" checked><span>No</span></label>
+<label><input type="radio" name="study" value="yes"><span>Yes</span></label>
+</div></div>
+</section>
+<section id="out" aria-live="polite"><p class="hint">Fill in all the details above to see your plans.</p></section>
+</main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var EMB=null/*EMBED*/;
+var D=null;
+var NOCOVER='No cover for the Age/Destination';
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function fmt(n){return n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function parse(s){if(!s)return null;var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function err(id,m){$(id).textContent=m}
+function load(){
+  return fetch('../data/rates.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){D=j;return true}).catch(function(){if(!D&&EMB)D=EMB;return !!D});
+}
+function fillCountries(){
+  var sel=$('country'),cur=sel.value,all=D.schengen.concat(D.worldwide).sort(function(a,b){return a.localeCompare(b)});
+  sel.innerHTML='<option value="">Select a country</option>'+all.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('');
+  sel.value=cur;
+}
+function showRate(){$('rate').textContent='Rate = '+D.rate}
+function calc(){
+  var out=$('out');['e-start','e-end','e-dob'].forEach(function(i){err(i,'')});
+  if(!D){out.innerHTML='<div class="nocover">Rates could not be loaded. Please refresh the page or try again later.</div>';return}
+  var s=parse($('start').value),e=parse($('end').value),b=parse($('dob').value),c=$('country').value;
+  var today=new Date();today.setHours(0,0,0,0);var bad=false;
+  if(s&&s<today){err('e-start','Start date cannot be in the past.');bad=true}
+  if(s&&e&&e<s){err('e-end','End date must be on or after the start date.');bad=true}
+  if(b&&b>today){err('e-dob','Date of birth cannot be in the future.');bad=true}
+  else if(b&&s&&b>s){err('e-dob','Date of birth must be before the start date.');bad=true}
+  if(bad){out.innerHTML='';return}
+  if(!s||!e||!b||!c){out.innerHTML='<p class="hint">Fill in all the details above to see your plans.</p>';return}
+  var days=Math.round((e-s)/864e5)+1;
+  var age=s.getFullYear()-b.getFullYear();
+  if(s.getMonth()<b.getMonth()||(s.getMonth()===b.getMonth()&&s.getDate()<b.getDate()))age--;
+  var zone=D.schengen.indexOf(c)>-1?'schengen':'worldwide';
+  var study=document.querySelector('input[name=study]:checked').value==='yes';
+  var plans=[];
+  if(study){
+    if(days<=365){var six=days<=180;plans.push({name:"Student's Package",usd:D.student[zone][six?'sixMonths':'oneYear'],note:six?'6 months (maximum 180 consecutive days)':'1 year (maximum 365 consecutive days)'})}
+  }else{
+    var ti=D.tiers.findIndex(function(t){return days<=t.max});
+    if(ti>-1){
+      var band=D.bands.find(function(x){return age<=x.max});
+      D.plans[zone].forEach(function(p){
+        var v=band&&band.rates[p]?band.rates[p][ti]:null;
+        if(v!=null)plans.push({name:p,usd:v,note:D.tiers[ti].label,warn:D.tiers[ti].warning});
+      });
+    }
+  }
+  var head='<p class="summary"><b>'+days+'</b> day'+(days===1?'':'s')+', age <b>'+age+'</b>, going to <b>'+esc(c)+'</b> ('+(zone==='schengen'?'Schengen':'Worldwide')+' cover).</p>';
+  if(!plans.length){out.innerHTML=head+'<div class="nocover">'+NOCOVER+'</div>';return}
+  out.innerHTML=head+'<div class="plans">'+plans.map(function(p){
+    var ghs=p.usd*D.rate;
+    var msg='I want to purchase travel insurance. Details: Plan: '+p.name+'; Price: GHS '+fmt(ghs)+'; Days: '+days+'; Age: '+age+'; Destination: '+c+(p.warn?'; Warning: '+p.warn:'');
+    return'<article class="card plan"><h3>'+esc(p.name)+'</h3><div class="price">GHS '+fmt(ghs)+'</div><div class="usd">USD '+fmt(p.usd)+' at rate '+D.rate+'</div><div class="note">'+esc(p.note)+'</div>'
+      +(p.warn?'<div class="warn">'+esc(p.warn.charAt(0).toUpperCase()+p.warn.slice(1))+'</div>':'')
+      +'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+D.whatsapp+'?text='+encodeURIComponent(msg)+'">Request this Quote</a></article>';
+  }).join('')+'</div>';
+}
+function refresh(){var old=JSON.stringify(D);load().then(function(ok){if(ok&&JSON.stringify(D)!==old){showRate();fillCountries();calc()}})}
+var t=iso(new Date());$('start').min=t;$('end').min=t;$('dob').max=t;
+['start','end','dob','country'].forEach(function(i){$(i).addEventListener('input',calc);$(i).addEventListener('change',calc)});
+document.querySelectorAll('input[name=study]').forEach(function(r){r.addEventListener('change',calc)});
+load().then(function(ok){if(ok){showRate();fillCountries()}else{$('rate').textContent='Rate unavailable'}calc();if(ok)setInterval(refresh,60000)});
+})();
+</script>
+</body>
+</html>
