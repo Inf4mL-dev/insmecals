@@ -1,1 +1,114 @@
-
+{
+  "rate": 11,
+  "whatsapp": "233552375066",
+  "plans": {
+    "schengen": ["Schengen"],
+    "worldwide": ["Traveller", "Pearl", "Economy"]
+  },
+  "tiers": [
+    {
+      "label": "Up to 7 days",
+      "max": 7
+    },
+    {
+      "label": "Up to 10 days",
+      "max": 10
+    },
+    {
+      "label": "Up to 15 days",
+      "max": 15
+    },
+    {
+      "label": "Up to 21 days",
+      "max": 21
+    },
+    {
+      "label": "Up to 31 days",
+      "max": 31
+    },
+    {
+      "label": "Up to 60 days",
+      "max": 60
+    },
+    {
+      "label": "Up to 92 days",
+      "max": 92
+    },
+    {
+      "label": "Up to 180 days",
+      "max": 180,
+      "warning": "limited to 92 days per travel"
+    },
+    {
+      "label": "Annual multi-trip",
+      "max": 365,
+      "warning": "limited to 92 days per travel"
+    },
+    {
+      "label": "Bi-Annual multi-trip",
+      "max": 730,
+      "warning": "limited to 92 days per travel"
+    }
+  ],
+  "bands": [
+    {
+      "label": "Under 19",
+      "max": 18,
+      "rates": {
+        "Schengen": [8.63, 10.22, 11.82, 15.49, 17.09, 26.6, 37.75, 43.6, 64.3, 124.22],
+        "Traveller": [18.68, 20.24, 26.16, 31.97, 46.57, 57.04, 67.02, 79.03, 86.08, 164.86],
+        "Pearl": [14.44, 16.18, 21.34, 23.44, 30.41, 41.59, 55.21, 62.84, 73.63, 137.83],
+        "Economy": [8.44, 10.26, 12.07, 16.36, 18.35, 28.42, 39.3, 47.23, 58.85, 112.67]
+      }
+    },
+    {
+      "label": "19-65",
+      "max": 65,
+      "rates": {
+        "Schengen": [17.24, 20.45, 23.63, 30.97, 34.16, 53.2, 75.49, 87.18, 128.58, 248.44],
+        "Traveller": [37.37, 40.48, 52.32, 63.94, 93.14, 114.06, 134.03, 158.08, 172.16, 329.7],
+        "Pearl": [28.86, 32.35, 42.66, 46.87, 60.83, 83.2, 110.44, 125.69, 147.25, 275.66],
+        "Economy": [16.88, 20.51, 24.14, 32.71, 36.7, 56.82, 78.61, 94.45, 117.7, 225.34]
+      }
+    },
+    {
+      "label": "66-75",
+      "max": 75,
+      "rates": {
+        "Schengen": [25.86, 30.66, 35.45, 46.46, 51.24, 79.79, 113.24, 130.78, 192.88, 372.65],
+        "Traveller": [56.04, 60.72, 78.48, 95.92, 139.72, 171.1, 201.05, 237.11, 258.24, 494.56],
+        "Pearl": [43.3, 48.53, 64, 70.31, 91.24, 124.79, 165.65, 188.52, 220.88, 413.5],
+        "Economy": [25.32, 30.77, 36.22, 49.07, 55.06, 85.24, 117.91, 141.68, 176.54, 338]
+      }
+    },
+    {
+      "label": "76-80",
+      "max": 80,
+      "rates": {
+        "Schengen": [34.49, 40.88, 47.27, 61.94, 68.33, 106.38, 150.98, 174.36, 257.16, 496.87],
+        "Traveller": [74.72, 80.96, 104.64, 127.88, 186.29, 228.13, 268.07, 316.14, 344.33, 659.4],
+        "Pearl": [57.72, 64.7, 85.32, 93.74, 121.64, 166.38, 220.87, 251.36, 294.5, 551.33],
+        "Economy": [33.77, 41.03, 48.29, 65.42, 73.4, 113.64, 157.22, 188.9, 235.38, 450.66]
+      }
+    },
+    {
+      "label": "81 and above",
+      "max": 999,
+      "rates": {
+        "Schengen": [68.96, 81.78, 94.52, 123.89, 136.64, 212.76, 301.97, 348.72, 514.32, 993.73]
+      }
+    }
+  ],
+  "student": {
+    "schengen": {
+      "sixMonths": 210.04,
+      "oneYear": 285.76
+    },
+    "worldwide": {
+      "sixMonths": 241.43,
+      "oneYear": 328.45
+    }
+  },
+  "schengen": ["Austria", "Belgium", "Bulgaria", "Croatia", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland"],
+  "worldwide": ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Republic)", "Congo (DR)", "Costa Rica", "Côte d'Ivoire", "Cuba", "Cyprus", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Eswatini", "Ethiopia", "Fiji", "Gabon", "Gambia", "Georgia", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Lebanon", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Qatar", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "São Tomé and Príncipe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Sri Lanka", "Sudan", "Suriname", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"]
+}
