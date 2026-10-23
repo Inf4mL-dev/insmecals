@@ -45,7 +45,7 @@
     },
     {
       file: "travel-insurance.html",
-      label: "Travel Insurance",
+      label: "Travel",
       fromPages: "travel-insurance.html",
       fromRoot: "src/pages/travel-insurance.html",
     },
