@@ -7,42 +7,94 @@
 <script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/shared.css">
 <style>
-body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-body);padding:76px 16px 56px;line-height:1.5}
-.wrap{max-width:780px;margin:0 auto}
-h1{font-family:var(--font-heading);font-size:clamp(28px,5vw,40px);line-height:1.1;margin:6px 0 8px}
-.lead{color:var(--ink-soft);margin:0 0 14px}
-.rate{display:inline-block;font-family:var(--font-mono);font-size:13px;background:var(--tint);border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin:0 0 20px}
-.card{background:var(--surface-card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+/* ---------- New tokens (existing shared.css variables are used as they are) ----------
+   --ink-faint : tier-3 text, non-essential meta only
+   --card-edge : 1px hairline around raised surfaces
+   --card-sheen: top-lit surface gradient, layered over --surface-card
+   --card-drop : soft shadow that always falls downward                                */
+:root{
+  --ink-faint:#64748B;
+  --card-edge:rgba(11,18,32,.08);
+  --card-sheen:linear-gradient(180deg,rgba(255,255,255,0),rgba(11,18,32,.03));
+  --card-drop:0 24px 60px rgba(11,18,32,.12);
+}
+html[data-theme="dark"]{
+  --ink-faint:#5E6B84;
+  --card-edge:rgba(255,255,255,.08);
+  --card-sheen:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  --card-drop:0 24px 60px rgba(0,0,0,.45);
+}
+
+body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-body);padding:80px 16px 56px;line-height:1.5}
+.wrap{max-width:784px;margin:0 auto}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Header: one loud title, quieter lead, small rate tag */
+h1{font-family:var(--font-heading);font-size:clamp(32px,5vw,40px);line-height:1.1;font-weight:800;margin:8px 0 8px}
+.lead{color:var(--ink-soft);margin:0 0 16px}
+.rate{display:inline-block;font-family:var(--font-mono);font-size:14px;color:var(--ink-soft);background:var(--tint);border:1px solid var(--line);border-radius:999px;padding:8px 16px;margin:0 0 24px}
+
+/* Raised surface: hairline border, top-lit gradient, downward shadow, radius 24 */
+.card{background:var(--card-sheen),var(--surface-card);border:1px solid var(--card-edge);border-radius:24px;box-shadow:var(--card-drop);padding:24px}
+
+/* Form: grouped, 8pt spacing */
+.form{display:grid;gap:24px}
+.group{display:grid;gap:16px}
+.group-title{font-family:var(--font-heading);font-size:16px;font-weight:700;margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
 .field.full{grid-column:1/-1}
 label,.lbl{font-weight:600;font-size:14px}
-input[type=date],select{font:inherit;color:var(--ink);background:var(--surface-soft);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;box-sizing:border-box}
+input[type=date],select{font:inherit;color:var(--ink);background:var(--surface-soft);border:1px solid var(--line);border-radius:16px;min-height:48px;padding:8px 16px;width:100%;box-sizing:border-box;transition:border-color 200ms ease-out}
 input:focus-visible,select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+input[aria-invalid=true]{border-color:var(--danger)}
 html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85)}
-.err{color:var(--danger);font-size:13px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-soft);align-self:flex-start}
+.err{color:var(--danger);font-size:14px}
+.err:empty{display:none}
+
+/* Segmented Yes/No control */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface-soft);align-self:flex-start}
 .seg label{position:relative;margin:0;cursor:pointer}
-.seg input{position:absolute;opacity:0;inset:0}
-.seg span{display:block;padding:10px 26px;font-weight:600;color:var(--ink-soft)}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;font-weight:600;color:var(--ink-soft);transition:background 200ms ease-out,color 200ms ease-out}
 .seg input:checked+span{background:var(--primary-dark);color:var(--white)}
-.seg input:focus-visible+span{outline:2px solid var(--primary);outline-offset:-3px}
-.summary{margin:26px 0 12px;font-size:15px;color:var(--ink-soft)}
+.seg input:focus-visible+span{outline:2px solid var(--primary);outline-offset:-4px}
+
+/* Results */
+.summary{margin:24px 0 16px;font-size:16px;color:var(--ink-soft)}
 .summary b{color:var(--ink)}
-.hint{color:var(--ink-soft);margin:24px 2px 0}
-.plans{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.plan{display:flex;flex-direction:column;gap:8px}
-.plan h3{font-family:var(--font-heading);font-size:22px;margin:0}
-.price{font-family:var(--font-mono);font-size:28px;font-weight:600;color:var(--primary-dark);line-height:1.1}
-.usd,.note{font-size:13px;color:var(--ink-soft)}
-.usd{font-family:var(--font-mono)}
-.warn{background:var(--warning-tint);border:1px solid var(--warning);border-radius:8px;padding:8px 10px;font-size:13px}
-.btn{margin-top:auto;display:block;background:var(--primary-dark);color:var(--white);border-radius:10px;padding:12px;font-weight:700;text-align:center;text-decoration:none}
+.hint{color:var(--ink-soft);margin:24px 0 0}
+.plans{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.plan{display:flex;flex-direction:column;gap:8px;transition:transform 200ms ease-out}
+.plan:hover{transform:translateY(-4px)}
+.plan h3{font-family:var(--font-heading);font-size:28px;line-height:1.2;font-weight:800;margin:0;overflow-wrap:anywhere}
+.price{font-family:var(--font-mono);font-size:24px;font-weight:800;color:var(--primary-dark);line-height:1.2}
+.note{font-size:14px;color:var(--ink-soft)}
+.usd{font-family:var(--font-mono);font-size:14px;color:var(--ink-faint);margin-bottom:8px}
+
+/* Notices sit inline, in the content's own styling, with an icon (not banner boxes) */
+.inline-note{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:var(--ink)}
+.ico{flex:none;margin-top:2px}
+.ico.warn{color:var(--warning)}
+.ico.bad{color:var(--danger)}
+.notice{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.notice .msg{display:flex;align-items:flex-start;gap:8px;flex:1 1 240px;font-weight:600}
+
+/* Primary action: large target, accent colour */
+.btn{margin-top:auto;display:flex;align-items:center;justify-content:center;min-height:56px;padding:0 24px;box-sizing:border-box;border:0;font:inherit;background:var(--primary-dark);color:var(--white);border-radius:16px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer;transition:transform 120ms ease-out,background 200ms ease-out}
 .btn:hover{background:var(--primary)}
+.btn:active{transform:scale(.97)}
 .btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.nocover{background:var(--danger-tint);border:1px solid var(--danger);border-radius:var(--radius);padding:16px;font-weight:600}
+.btn.inline{margin-top:0}
+.btn.done{background:var(--ink-soft)}
+
+/* Motion: results enter with a short stagger; only when the results change */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.enter .plan,.enter .notice{animation:rise 200ms ease-out both;animation-delay:calc(var(--i,0)*40ms)}
+
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
-@media print{.btn{display:none}}
+@media print{.btn{display:none}.plan{box-shadow:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -51,20 +103,30 @@ html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filt
 <header>
 <h1>Travel insurance quote</h1>
 <p class="lead">Enter your trip details to see the plans available to you.</p>
-<p class="rate" id="rate">Rate = …</p>
+<p class="rate" id="rate">Loading rate…</p>
 </header>
-<section class="card grid" aria-label="Trip details">
-<div class="field"><label for="start">Trip start date</label><input type="date" id="start"><span class="err" id="e-start"></span></div>
-<div class="field"><label for="end">Trip end date</label><input type="date" id="end"><span class="err" id="e-end"></span></div>
-<div class="field"><label for="dob">Date of birth</label><input type="date" id="dob"><span class="err" id="e-dob"></span></div>
+<section class="card form" aria-label="Trip details">
+<div class="group">
+<h2 class="group-title">Trip dates</h2>
+<div class="grid">
+<div class="field"><label for="start">Trip start date</label><input type="date" id="start" aria-describedby="e-start"><span class="err" id="e-start" aria-live="polite"></span></div>
+<div class="field"><label for="end">Trip end date</label><input type="date" id="end" aria-describedby="e-end"><span class="err" id="e-end" aria-live="polite"></span></div>
+</div>
+</div>
+<div class="group">
+<h2 class="group-title">Traveller</h2>
+<div class="grid">
+<div class="field"><label for="dob">Date of birth</label><input type="date" id="dob" aria-describedby="e-dob"><span class="err" id="e-dob" aria-live="polite"></span></div>
 <div class="field"><label for="country">Destination country</label><select id="country"><option value="">Select a country</option></select></div>
 <div class="field full"><span class="lbl" id="study-l">Is the purpose for study?</span>
 <div class="seg" role="radiogroup" aria-labelledby="study-l">
 <label><input type="radio" name="study" value="no" checked><span>No</span></label>
 <label><input type="radio" name="study" value="yes"><span>Yes</span></label>
 </div></div>
+</div>
+</div>
 </section>
-<section id="out" aria-live="polite"><p class="hint">Fill in all the details above to see your plans.</p></section>
+<section id="out" aria-live="polite"><p class="hint">Loading rates…</p></section>
 </main>
 <script>
 (function(){
@@ -72,11 +134,27 @@ var $=function(i){return document.getElementById(i)};
 var EMB=null/*EMBED*/;
 var D=null;
 var NOCOVER='No cover for the Age/Destination';
+var ICON='<svg class="ico CLS" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/></svg>';
+var lastSig='';
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function fmt(n){return n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function parse(s){if(!s)return null;var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function err(id,m){$(id).textContent=m}
+function err(id,m){
+  $(id).textContent=m;
+  var inp=$(id.replace('e-',''));
+  if(m)inp.setAttribute('aria-invalid','true');else inp.removeAttribute('aria-invalid');
+}
+// Results change: replay the enter motion only when the content is actually different
+function render(html){
+  var out=$('out');
+  out.innerHTML=html;
+  out.classList.toggle('enter',html!==lastSig);
+  lastSig=html;
+}
+function notice(cls,text,label,act){
+  return'<div class="card notice"><div class="msg">'+ICON.replace('CLS',cls)+'<span>'+esc(text)+'</span></div><button type="button" class="btn inline" data-act="'+act+'">'+esc(label)+'</button></div>';
+}
 function load(){
   return fetch('../data/rates.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){D=j;return true}).catch(function(){if(!D&&EMB)D=EMB;return !!D});
 }
@@ -87,16 +165,26 @@ function fillCountries(){
 }
 function showRate(){$('rate').textContent='Rate = '+D.rate}
 function calc(){
-  var out=$('out');['e-start','e-end','e-dob'].forEach(function(i){err(i,'')});
-  if(!D){out.innerHTML='<div class="nocover">Rates could not be loaded. Please refresh the page or try again later.</div>';return}
+  ['e-start','e-end','e-dob'].forEach(function(i){err(i,'')});
+  if(!D){render(notice('bad','Rates could not be loaded. Please refresh the page or try again later.','Refresh page','reload'));return}
   var s=parse($('start').value),e=parse($('end').value),b=parse($('dob').value),c=$('country').value;
   var today=new Date();today.setHours(0,0,0,0);var bad=false;
+  // The end-date picker opens at the start date, so the person does not have to scroll to it
+  $('end').min=(s&&s>=today)?$('start').value:iso(today);
   if(s&&s<today){err('e-start','Start date cannot be in the past.');bad=true}
   if(s&&e&&e<s){err('e-end','End date must be on or after the start date.');bad=true}
   if(b&&b>today){err('e-dob','Date of birth cannot be in the future.');bad=true}
   else if(b&&s&&b>s){err('e-dob','Date of birth must be before the start date.');bad=true}
-  if(bad){out.innerHTML='';return}
-  if(!s||!e||!b||!c){out.innerHTML='<p class="hint">Fill in all the details above to see your plans.</p>';return}
+  if(bad){render('');return}
+  if(!s||!e||!b||!c){
+    var need=[];
+    if(!s)need.push('trip start date');
+    if(!e)need.push('trip end date');
+    if(!b)need.push('date of birth');
+    if(!c)need.push('destination country');
+    render('<p class="hint">Still needed to show your plans: '+need.join(', ')+'.</p>');
+    return;
+  }
   var days=Math.round((e-s)/864e5)+1;
   var age=s.getFullYear()-b.getFullYear();
   if(s.getMonth()<b.getMonth()||(s.getMonth()===b.getMonth()&&s.getDate()<b.getDate()))age--;
@@ -116,16 +204,41 @@ function calc(){
     }
   }
   var head='<p class="summary"><b>'+days+'</b> day'+(days===1?'':'s')+', age <b>'+age+'</b>, going to <b>'+esc(c)+'</b> ('+(zone==='schengen'?'Schengen':'Worldwide')+' cover).</p>';
-  if(!plans.length){out.innerHTML=head+'<div class="nocover">'+NOCOVER+'</div>';return}
-  out.innerHTML=head+'<div class="plans">'+plans.map(function(p){
+  if(!plans.length){render(head+notice('bad',NOCOVER,'Change destination','country'));return}
+  render(head+'<div class="plans">'+plans.map(function(p,i){
     var ghs=p.usd*D.rate;
     var msg='I want to purchase travel insurance. Details: Plan: '+p.name+'; Price: GHS '+fmt(ghs)+'; Days: '+days+'; Age: '+age+'; Destination: '+c+(p.warn?'; Warning: '+p.warn:'');
-    return'<article class="card plan"><h3>'+esc(p.name)+'</h3><div class="price">GHS '+fmt(ghs)+'</div><div class="usd">USD '+fmt(p.usd)+' at rate '+D.rate+'</div><div class="note">'+esc(p.note)+'</div>'
-      +(p.warn?'<div class="warn">'+esc(p.warn.charAt(0).toUpperCase()+p.warn.slice(1))+'</div>':'')
-      +'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+D.whatsapp+'?text='+encodeURIComponent(msg)+'">Request this Quote</a></article>';
-  }).join('')+'</div>';
+    return'<article class="card plan" style="--i:'+i+'"><h3>'+esc(p.name)+'</h3><div class="price">GHS '+fmt(ghs)+'</div><div class="note">'+esc(p.note)+'</div>'
+      +(p.warn?'<div class="inline-note">'+ICON.replace('CLS','warn')+'<span>'+esc(p.warn.charAt(0).toUpperCase()+p.warn.slice(1))+'</span></div>':'')
+      +'<div class="usd">USD '+fmt(p.usd)+' at rate '+D.rate+'</div>'
+      +'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+D.whatsapp+'?text='+encodeURIComponent(msg)+'"><span class="lbl-t">Request this Quote</span><span class="sr"> (opens WhatsApp in a new tab)</span></a></article>';
+  }).join('')+'</div>');
 }
 function refresh(){var old=JSON.stringify(D);load().then(function(ok){if(ok&&JSON.stringify(D)!==old){showRate();fillCountries();calc()}})}
+
+// Actions inside results: notice buttons, and in-place confirmation for the quote button
+$('out').addEventListener('click',function(ev){
+  var a=ev.target.closest('[data-act]');
+  if(a){
+    if(a.dataset.act==='reload')location.reload();
+    if(a.dataset.act==='country')$('country').focus();
+    return;
+  }
+  var q=ev.target.closest('a.btn');
+  if(!q)return;
+  if(q.dataset.busy){ev.preventDefault();return}   // a second click must not open a second chat
+  q.dataset.busy='1';
+  var t=q.querySelector('.lbl-t');
+  t.textContent='Opened in WhatsApp ✓';
+  q.classList.add('done');
+  setTimeout(function(){
+    if(!q.isConnected)return;
+    t.textContent='Request this Quote';
+    q.classList.remove('done');
+    delete q.dataset.busy;
+  },3000);
+});
+
 var t=iso(new Date());$('start').min=t;$('end').min=t;$('dob').max=t;
 ['start','end','dob','country'].forEach(function(i){$(i).addEventListener('input',calc);$(i).addEventListener('change',calc)});
 document.querySelectorAll('input[name=study]').forEach(function(r){r.addEventListener('change',calc)});
