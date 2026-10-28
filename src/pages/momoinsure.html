@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MomoInsure — Premium Calculator | Enterprise Insurance</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>(function(){try{var t=localStorage.getItem('insme-theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="../assets/css/shared.css">
 <style>
@@ -27,6 +27,8 @@
   --grey-text:var(--ink-soft);
 }
 
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
 *{box-sizing:border-box;}
 [hidden]{display:none !important;}
 html,body{margin:0;padding:0;}
@@ -81,7 +83,7 @@ body{
   font-size:12px;font-weight:700;white-space:nowrap;
 }
 .step-track{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:22px;}
-.step-seg{height:6px;border-radius:6px;background:var(--grey-border);transition:background .25s ease;}
+.step-seg{height:6px;border-radius:6px;background:var(--grey-border);transition:background 200ms ease;}
 .step-seg.done{background:var(--brand-1);}
 .step-seg.current{background:var(--tint-45);}
 
@@ -333,13 +335,14 @@ body{
 
       <div class="step" data-step="1">
         <h2 class="step-title">Fire &amp; Burglary</h2>
-        <p class="step-desc">Add a sum insured to include this cover, or skip it.</p>
+        <p class="step-desc">Fire &amp; Burglary is always included. Enter a sum insured, or leave it blank to use the default.</p>
         <div class="field" data-id="fire">
           <div class="field-head"><label for="in-fire">Sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
             <input type="text" inputmode="decimal" autocomplete="off" id="in-fire" data-id="fire" class="sum-input" placeholder="0.00">
           </div>
+          <div class="hint">If left blank, a default sum insured of GHS 1,000 is added.</div>
         </div>
       </div>
 
@@ -485,7 +488,7 @@ body{
 <div id="print-area">
   <div class="q-header">
     <div class="q-header-left">
-      <img src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance.png" alt="Enterprise Insurance">
+      <img src="https://scinsurance.my.enterprisegroup.net.gh/assets/Uploads/enterprise-insurance.png" alt="Enterprise Insurance" onerror="this.style.display='none'">
       <div class="member">A Member of the Enterprise Group</div>
       <div class="reference" id="q-reference">Reference: —</div>
     </div>
@@ -570,6 +573,10 @@ const TYPE_DESCRIPTIONS = {
   C:'Fully open-air operation (e.g. under a tent) with no fixed structure; cash kept in a bag on the operator.'
 };
 
+// Fire & Burglary: minimum annual premium and default sum insured (used when the field is left blank)
+const FIRE_MIN_PREMIUM = 50;
+const FIRE_DEFAULT_SUM = 1000;
+
 let lastResult = null; // { lines:[{label,sum,premium}], total, premisesType }
 
 const $ = id => document.getElementById(id);
@@ -629,7 +636,7 @@ const TOTAL_STEPS = 4;
 let currentStep = 1;
 
 function coverCount(){
-  return SECTIONS.filter(s => sumOf(s.id) > 0).length;
+  return SECTIONS.filter(s => s.id === 'fire' || sumOf(s.id) > 0).length;
 }
 
 function moneyReady(){
@@ -665,11 +672,11 @@ function updateNav(){
     gen.disabled = !quoteReady();
     const count = coverCount();
     hint.textContent = quoteReady() ? `Ready: ${count} covers included.`
-      : 'A quote needs Money Insurance plus at least one other cover. Add one here or go back.';
+      : 'A quote needs Money Insurance. Go back to step 2 to add it.';
   } else {
     next.disabled = false;
-    next.textContent = stepHasValue(n) ? 'Next' : 'Skip this cover';
-    hint.textContent = stepHasValue(n) ? 'Cover added.' : 'Optional. You can add it later.';
+    next.textContent = stepHasValue(n) ? 'Next' : (n === 1 ? 'Use default' : 'Skip this cover');
+    hint.textContent = stepHasValue(n) ? 'Cover added.' : (n === 1 ? 'Fire & Burglary is always included. Leave blank for the default.' : 'Optional. You can add it later.');
   }
 
   // field state + counter
@@ -755,11 +762,17 @@ document.querySelectorAll('.sum-input').forEach(input=>{
 function getSelections(){
   const premType = $('premises-type').value;
   return SECTIONS
-    .map(s => ({
-      ...s,
-      rate: s.group === 'money' ? (TYPE_RATES[premType] || 0) : s.rate,
-      sum: sumOf(s.id)
-    }))
+    .map(s => {
+      const rate = s.group === 'money' ? (TYPE_RATES[premType] || 0) : s.rate;
+      const entered = sumOf(s.id);
+      const isFire = s.id === 'fire';
+      const isDefault = isFire && entered <= 0;
+      const sum = isDefault ? FIRE_DEFAULT_SUM : entered;
+      const raw = sum * rate;
+      const minApplied = isFire && raw < FIRE_MIN_PREMIUM;
+      const premium = minApplied ? FIRE_MIN_PREMIUM : raw;
+      return { ...s, rate, sum, premium, isDefault, minApplied };
+    })
     .filter(s => s.sum > 0);
 }
 
@@ -839,7 +852,7 @@ $('generate-btn').addEventListener('click', ()=>{
   }
   hideBanner();
 
-  const lines = selected.map(s => ({ label:s.label, sum:s.sum, premium: s.sum * s.rate }));
+  const lines = selected.map(s => ({ label:s.label, sum:s.sum, premium:s.premium, isDefault:s.isDefault, minApplied:s.minApplied }));
   const total = lines.reduce((sum, l) => sum + l.premium, 0);
   lastResult = { lines, total, premisesType: premType };
 
@@ -851,7 +864,7 @@ $('generate-btn').addEventListener('click', ()=>{
     <div class="cover-row">
       <div>
         <div class="name">${l.label.replace(/^Section \d — /,'')}</div>
-        <div class="si">Sum insured: GHS ${fmt(l.sum)}</div>
+        <div class="si">Sum insured: GHS ${fmt(l.sum)}${l.isDefault ? ' (default)' : ''}</div>${(l.minApplied && !l.isDefault) ? '<div class="si">Minimum premium applies</div>' : ''}
       </div>
       <div class="amt">GHS ${fmt(l.premium)}</div>
     </div>
@@ -936,7 +949,7 @@ $('modal-generate').addEventListener('click', ()=>{
   }
 
   $('q-lines').innerHTML = lastResult.lines.map(l => `
-    <tr><td>${l.label}</td><td class="num">${fmt(l.sum)}</td><td class="num">${fmt(l.premium)}</td></tr>
+    <tr><td>${l.label}${l.isDefault ? '<br><small>Default sum insured</small>' : (l.minApplied ? '<br><small>Minimum premium applies</small>' : '')}</td><td class="num">${fmt(l.sum)}</td><td class="num">${fmt(l.premium)}</td></tr>
   `).join('');
 
   const premTypeRow = $('q-premtype-row');
