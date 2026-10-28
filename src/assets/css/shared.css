@@ -5,7 +5,7 @@
   Loaded by every page in src/pages/, BEFORE each page's own <style> block.
   This is the single source of truth for:
     - Color tokens (light + dark themes, toggled via [data-theme] on <html>)
-    - Typography tokens (Effyra for headings, Inter for body/UI, Plex Mono
+    - Typography tokens (Kawak for headings, Inter for body/UI, Plex Mono
       for figures)
     - The shared top navigation bar + dark-mode toggle button
 
@@ -19,9 +19,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
 @font-face{
-  font-family:'Effyra';
-  src:url('../fonts/Effyra.otf') format('opentype');
-  font-weight:100 900;
+  font-family:'Kawak';
+  src:url('../fonts/Kawak-Regular.otf') format('opentype');
+  font-weight:400;
   font-style:normal;
   font-display:swap;
 }
@@ -62,7 +62,7 @@
   --shadow: 0 10px 30px -12px rgba(0,91,181,0.25);
 
   /* Typography roles */
-  --font-heading:'Effyra','Fraunces',Georgia,'Times New Roman',serif;
+  --font-heading:'Kawak','Fraunces',Georgia,'Times New Roman',serif;
   --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
