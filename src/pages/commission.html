@@ -378,6 +378,30 @@
     margin-bottom:18px;
   }
 
+  /* premium summary strip (sits under the policy name) */
+  .result-premium{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 18px;
+    margin:0 0 14px;
+    background:var(--blue-tint-90);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+
+  .result-premium span:first-child{
+    font-size:13px;
+    font-weight:600;
+    color:var(--charcoal-soft);
+  }
+
+  .result-premium span:last-child{
+    font-size:17px;
+    font-weight:700;
+    color:var(--charcoal);
+  }
+
   /* details / breakdown disclosure (Miller: hidden until asked for) */
   .details-toggle{
     appearance:none;
@@ -557,6 +581,7 @@
       <div class="result-label">Commission due</div>
       <div class="result-amount"><span class="result-currency">GH₵</span><span id="resultValue">0.00</span></div>
       <div class="result-sub" id="resultPolicyName">Motor &mdash; Third Party</div>
+      <div class="result-premium"><span>Premium</span><span id="resultPremium">GH₵0.00</span></div>
 
       <button class="details-toggle" id="detailsToggle" type="button" aria-expanded="false" aria-controls="breakdownBox">
         <span class="info-dot" aria-hidden="true">?</span>
@@ -759,6 +784,7 @@
 
     document.getElementById('resultValue').textContent = formatGHC(finalCommission);
     document.getElementById('resultPolicyName').innerHTML = policyLabels[effectiveType];
+    document.getElementById('resultPremium').textContent = 'GH₵' + formatGHC(premium);
 
     let rows = '';
     rows += `<div class="breakdown-row"><span>Premium</span><span>GH₵${formatGHC(premium)}</span></div>`;
