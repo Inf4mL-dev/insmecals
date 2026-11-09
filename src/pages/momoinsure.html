@@ -316,7 +316,7 @@ body{
   <div id="landing-view" class="card landing-card">
     <div class="landing-icon">₵</div>
     <h1>Hello! Welcome to the MomoInsure Calculator</h1>
-    <p>Get an instant premium estimate for your agent cover — Fire, Money, Public Liability, and Personal Accident — one section at a time.</p>
+    <p>Get an instant premium estimate for your agent cover — Fire, Money, Personal Accident, and Public Liability — one section at a time.</p>
     <button class="btn btn-primary" id="get-quote-btn" type="button">Get a Quote</button>
   </div>
 
@@ -386,25 +386,25 @@ body{
       </div>
 
       <div class="step" data-step="3" style="display:none;">
-        <h2 class="step-title">Public Liability</h2>
-        <p class="step-desc">Add a sum insured to include this cover, or skip it.</p>
-        <div class="field" data-id="liability">
-          <div class="field-head"><label for="in-liability">Sum insured</label><span class="status">Added ✓</span></div>
-          <div class="row">
-            <span class="prefix">GHS</span>
-            <input type="text" inputmode="decimal" autocomplete="off" id="in-liability" data-id="liability" class="sum-input" placeholder="0.00">
-          </div>
-        </div>
-      </div>
-
-      <div class="step" data-step="4" style="display:none;">
         <h2 class="step-title">Personal Accident</h2>
-        <p class="step-desc">Last step. Add a sum insured to include this cover, or leave it blank.</p>
+        <p class="step-desc">Add a sum insured to include this cover, or skip it.</p>
         <div class="field" data-id="pa">
           <div class="field-head"><label for="in-pa">Sum insured</label><span class="status">Added ✓</span></div>
           <div class="row">
             <span class="prefix">GHS</span>
             <input type="text" inputmode="decimal" autocomplete="off" id="in-pa" data-id="pa" class="sum-input" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+
+      <div class="step" data-step="4" style="display:none;">
+        <h2 class="step-title">Public Liability</h2>
+        <p class="step-desc">Last step. Add a sum insured to include this cover, or leave it blank.</p>
+        <div class="field" data-id="liability">
+          <div class="field-head"><label for="in-liability">Sum insured</label><span class="status">Added ✓</span></div>
+          <div class="row">
+            <span class="prefix">GHS</span>
+            <input type="text" inputmode="decimal" autocomplete="off" id="in-liability" data-id="liability" class="sum-input" placeholder="0.00">
           </div>
         </div>
       </div>
@@ -559,11 +559,11 @@ const SECTIONS = [
   { id:'fire',      label:'Section 1 — Fire & Burglary',        rate:0.0015 },
   { id:'holdup',    label:'Section 2 — Money Insurance: Hold Up',    group:'money' },
   { id:'transit',   label:'Section 2 — Money Insurance: Cash in Transit', group:'money' },
-  { id:'liability', label:'Section 3 — Public Liability',            rate:0.005 },
-  { id:'pa',        label:'Section 4 — Personal Accident Cover',     rate:0.0025 },
+  { id:'pa',        label:'Section 3 — Personal Accident Cover',     rate:0.0025 },
+  { id:'liability', label:'Section 4 — Public Liability',            rate:0.005 },
 ];
 
-const STEP_NAMES = { 1:'Fire & Burglary', 2:'Money Insurance', 3:'Public Liability', 4:'Personal Accident' };
+const STEP_NAMES = { 1:'Fire & Burglary', 2:'Money Insurance', 3:'Personal Accident', 4:'Public Liability' };
 
 // Premises Type rates (Money Insurance only) — internal, never shown in the UI
 const TYPE_RATES = { A:0.005, B:0.0075, C:0.01 };
@@ -649,8 +649,8 @@ function quoteReady(){
 
 function stepHasValue(n){
   if(n === 1) return sumOf('fire') > 0;
-  if(n === 3) return sumOf('liability') > 0;
-  if(n === 4) return sumOf('pa') > 0;
+  if(n === 3) return sumOf('pa') > 0;
+  if(n === 4) return sumOf('liability') > 0;
   return moneyReady();
 }
 
