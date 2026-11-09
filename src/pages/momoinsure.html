@@ -253,6 +253,13 @@ body{
 .modal-actions .btn-text{flex:0 0 auto;}
 .modal-actions .btn-primary{flex:1;}
 
+.modal-actions.stack{flex-wrap:wrap;}
+.modal-actions.stack .btn{flex:1 1 calc(50% - 4px);min-width:0;padding:14px 10px;}
+.modal-actions.stack .btn-text{flex:1 1 100%;order:3;}
+.btn-wa{color:#fff;background:var(--success);box-shadow:0 6px 16px color-mix(in srgb, var(--success) 35%, transparent);}
+.btn-wa:hover{transform:translateY(-2px);filter:brightness(1.05);}
+.btn-wa:active{transform:translateY(0);}
+
 /* print-only quote sheet */
 #print-area{display:none;}
 
@@ -460,7 +467,7 @@ body{
     </div>
 
     <div class="response-actions">
-      <button class="btn btn-primary btn-block" id="print-btn" type="button">Print quote</button>
+      <button class="btn btn-primary btn-block" id="print-btn" type="button">Print/Share Quote</button>
       <button class="btn btn-text" id="back-btn" type="button">&larr; Back to calculator</button>
     </div>
   </div>
@@ -471,15 +478,42 @@ body{
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h3 id="modal-title">A few details for the quote</h3>
-    <p>These appear on the printed MomoInsure quotation.</p>
+    <p>These appear on the printed or shared MomoInsure quotation.</p>
     <div class="mfield"><label for="f-name">Insured name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
     <div class="mfield"><label for="f-contact">Contact</label><input type="tel" inputmode="numeric" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
     <div class="mfield"><label for="f-location">Shop location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
     <div class="mfield"><label for="f-code">Agent's code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
     <div id="modal-banner" class="banner" role="alert"></div>
-    <div class="modal-actions">
+    <div class="modal-actions stack">
+      <button class="btn btn-primary" id="modal-pdf" type="button">Print to PDF</button>
+      <button class="btn btn-wa" id="modal-share" type="button">Share on WhatsApp</button>
       <button class="btn btn-text" id="modal-cancel" type="button">Cancel</button>
-      <button class="btn btn-primary" id="modal-generate" type="button">Generate &amp; print</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE: CONFIRM INSURED NUMBER -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" style="text-align:center;">
+    <h3 id="confirm-title">Share to Insured number?</h3>
+    <p id="confirm-number" style="font-family:var(--font-mono);font-size:16px;color:var(--ink);margin:6px 0 0;"></p>
+    <div class="modal-actions stack">
+      <button class="btn btn-secondary" id="confirm-no" type="button">No</button>
+      <button class="btn btn-wa" id="confirm-yes" type="button">Yes</button>
+      <button class="btn btn-text" id="confirm-back" type="button">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE: ANOTHER NUMBER -->
+<div class="modal-overlay" id="other-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="other-title">
+    <h3 id="other-title">Share to another number</h3>
+    <div class="mfield" style="margin-top:14px;"><label for="f-other">Phone number</label><input type="tel" inputmode="numeric" id="f-other" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div id="other-banner" class="banner" role="alert"></div>
+    <div class="modal-actions stack">
+      <button class="btn btn-wa" id="other-go" type="button">Share on WhatsApp</button>
+      <button class="btn btn-text" id="other-back" type="button">Back</button>
     </div>
   </div>
 </div>
@@ -901,7 +935,7 @@ function formatGhanaNumber(digits){
   return `(+233) ${rest.slice(0,2)}-${rest.slice(2,5)}-${rest.slice(5,9)}`;
 }
 
-$('modal-generate').addEventListener('click', ()=>{
+function processDetails(mode){
   const name = $('f-name').value.trim();
   const contactRaw = $('f-contact').value.trim();
   const location = $('f-location').value.trim();
@@ -962,8 +996,79 @@ $('modal-generate').addEventListener('click', ()=>{
   }
 
   overlay.classList.remove('show');
-  window.print();
+  if(mode === 'print'){ window.print(); return; }
+  shareState = { name, location, code, months, charged };
+  shareState.contactRaw = contactRaw;
+  $('confirm-number').textContent = contactRaw;
+  $('confirm-overlay').classList.add('show');
+}
+$('modal-pdf').addEventListener('click', ()=>processDetails('print'));
+$('modal-share').addEventListener('click', ()=>processDetails('share'));
+
+// ---- WhatsApp share ----
+let shareState = null;
+const confirmOv = $('confirm-overlay');
+const otherOv = $('other-overlay');
+
+function shortName(label){
+  const t = label.replace(/^Section \d — /,'');
+  if(t.indexOf('Money Insurance: ') === 0) return t.replace('Money Insurance: ','') + ' (Type ' + lastResult.premisesType + ')';
+  return t.replace(' Cover','');
+}
+
+function buildShareMessage(){
+  const s = shareState;
+  const rows = lastResult.lines.map(l => `${shortName(l.label)}: ${l.sum.toLocaleString('en-GH')} → ${fmt(l.premium)}`);
+  return [
+    '*MomoInsure quote*',
+    `${s.name}, ${s.location}`,
+    `Agent: ${s.code}`,
+    '',
+    'Sum insured → premium (GHS)',
+    ...rows,
+    '',
+    `*Total: GHS ${fmt(s.charged)}* (${s.months} month${s.months === 1 ? '' : 's'})`
+  ].join('\n');
+}
+
+function sendWhatsApp(localNumber){
+  const intl = '233' + localNumber.slice(1);
+  const url = 'https://wa.me/' + intl + '?text=' + encodeURIComponent(buildShareMessage());
+  confirmOv.classList.remove('show');
+  otherOv.classList.remove('show');
+  window.open(url, '_blank', 'noopener');
+}
+
+$('confirm-yes').addEventListener('click', ()=> sendWhatsApp(shareState.contactRaw));
+$('confirm-no').addEventListener('click', ()=>{
+  confirmOv.classList.remove('show');
+  $('other-banner').classList.remove('show');
+  otherOv.classList.add('show');
+  $('f-other').focus();
 });
+$('confirm-back').addEventListener('click', ()=>{
+  confirmOv.classList.remove('show');
+  overlay.classList.add('show');
+});
+$('other-back').addEventListener('click', ()=>{
+  otherOv.classList.remove('show');
+  confirmOv.classList.add('show');
+});
+$('f-other').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+  $('other-banner').classList.remove('show');
+});
+$('other-go').addEventListener('click', ()=>{
+  const n = $('f-other').value.trim();
+  if(!/^0\d{9}$/.test(n)){
+    const b = $('other-banner');
+    b.textContent = 'Enter a 10-digit number starting with 0, e.g. 0551234567.';
+    b.classList.add('show');
+    return;
+  }
+  sendWhatsApp(n);
+});
+[confirmOv, otherOv].forEach(o => o.addEventListener('click', (e)=>{ if(e.target === o) o.classList.remove('show'); }));
 </script>
 </body>
 </html>
