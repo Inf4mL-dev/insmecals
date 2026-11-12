@@ -226,6 +226,11 @@ html[data-theme="dark"] .modal h3{color:var(--primary);}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
 .modal-actions .btn{padding:10px 18px;font-size:14px;}
 
+.btn-wa{background:var(--success);color:#fff;}
+.btn-wa:hover{transform:translateY(-1px);filter:brightness(.92);}
+.modal-actions.stack{flex-direction:column;justify-content:stretch;}
+.modal-actions.stack .btn{width:100%;}
+
 [hidden]{display:none !important;}
 
 /* large, primary actions (Fitts) */
@@ -488,7 +493,7 @@ body.flood-lock{overflow:hidden;}
     </div>
 
     <div class="cta-row">
-      <button class="btn btn-primary btn-lg" id="print-btn">Print my quote</button>
+      <button class="btn btn-primary btn-lg" id="print-btn">Print/Share Quote</button>
       <button class="btn btn-text" id="edit-btn" type="button">Change my cover</button>
     </div>
 
@@ -550,13 +555,41 @@ body.flood-lock{overflow:hidden;}
     <h3>A few details for the quote</h3>
     <p>These appear on the printed SME Insure quotation.</p>
     <div class="field"><label for="f-name">Insured Name</label><input type="text" id="f-name" placeholder="e.g. Ama Owusu"></div>
-    <div class="field"><label for="f-contact">Contact</label><input type="tel" id="f-contact" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div class="field"><label for="f-contact">Contact</label><input type="tel" id="f-contact" inputmode="numeric" placeholder="e.g. 0551234567" maxlength="10"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
     <div class="field"><label for="f-location">Shop Location</label><input type="text" id="f-location" placeholder="e.g. Madina Market, Accra"></div>
     <div class="field"><label for="f-code">Agent's Code</label><input type="text" id="f-code" placeholder="e.g. IM000079 or MMG00002"></div>
     <div id="modal-banner" class="banner"></div>
-    <div class="modal-actions">
+    <div class="modal-actions stack">
+      <button class="btn btn-primary" id="modal-generate">Print to PDF</button>
+      <button class="btn btn-wa" id="modal-share">Share on WhatsApp</button>
       <button class="btn btn-text" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="modal-generate">Generate &amp; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE: STEP A -->
+<div class="modal-overlay" id="shareA-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareA-title">
+    <h3 id="shareA-title">Share to Insured number?</h3>
+    <p><b id="sA-contact"></b></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="flex:1" id="shareA-no" type="button">No</button>
+      <button class="btn btn-primary" style="flex:1" id="shareA-yes" type="button">Yes</button>
+    </div>
+    <div style="text-align:center;margin-top:6px"><button class="btn btn-text" id="shareA-back" type="button">Back</button></div>
+  </div>
+</div>
+
+<!-- SHARE: ENTER NUMBER -->
+<div class="modal-overlay" id="shareB-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareB-title">
+    <h3 id="shareB-title">Enter Number</h3>
+    <p>Which WhatsApp number should receive the quote?</p>
+    <div class="field"><label for="s-phone">WhatsApp number</label><input type="tel" id="s-phone" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="e.g. 0551234567"><div class="hint">10-digit Ghanaian number, starting with 0</div></div>
+    <div id="shareB-banner" class="banner"></div>
+    <div class="modal-actions stack">
+      <button class="btn btn-wa" id="shareB-send" type="button">Share on WhatsApp</button>
+      <button class="btn btn-text" id="shareB-back" type="button">Back</button>
     </div>
   </div>
 </div>
@@ -963,7 +996,8 @@ body.flood-lock{overflow:hidden;}
     items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
   }
 
-  document.getElementById('modal-generate').addEventListener('click', () => {
+  // One function validates, fills the print area, then prints or starts the share flow
+  function processDetails(mode) {
     const name = document.getElementById('f-name').value.trim();
     const contactRaw = document.getElementById('f-contact').value.trim();
     const location = document.getElementById('f-location').value.trim();
@@ -1016,9 +1050,66 @@ body.flood-lock{overflow:hidden;}
     fillList('q-exclusions', QUOTE_EXCLUSIONS);
     fillList('q-conditions', QUOTE_CONDITIONS);
 
+    det = { name, contact: contactRaw, location, code };
     overlay.classList.remove('show');
-    window.print();
-    setStage(3, 100, 'All done. Your quote is ready.');
+    if (mode === 'print') {
+      window.print();
+      setStage(3, 100, 'All done. Your quote is ready.');
+    } else {
+      document.getElementById('sA-contact').textContent = contactRaw;
+      openOv('shareA-overlay');
+    }
+  }
+
+  /* ---- Share on WhatsApp ---- */
+  let det = null;
+  const PHONE_RE = /^0\d{9}$/;
+  const gid = id => document.getElementById(id);
+  function openOv(id) { gid(id).classList.add('show'); }
+  function closeOv(id) { gid(id).classList.remove('show'); }
+  function closeShare() { closeOv('shareA-overlay'); closeOv('shareB-overlay'); }
+  gid('modal-generate').addEventListener('click', () => processDetails('print'));
+  gid('modal-share').addEventListener('click', () => processDetails('share'));
+  ['shareA-overlay', 'shareB-overlay'].forEach(id => gid(id).addEventListener('click', e => { if (e.target.id === id) closeShare(); }));
+  gid('s-phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+
+  function buildMsg() {
+    const res = lastResult, r = res.r;
+    const si = n => n.toLocaleString('en-GH', { maximumFractionDigits: 2 });
+    const pr = n => n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const f = res.lines[0], b = res.lines[1], pl = res.lines[2];
+    const L = ['*SME Insure quote*', det.name + ', ' + det.location, 'Contact: ' + det.contact, 'Agent: ' + det.code, '',
+      'Sum insured → premium (GHC)',
+      'Fire, Flood & Allied Perils: ' + si(f.sum) + ' → ' + pr(f.premium),
+      'Burglary (Cat ' + res.bcatNum + '): ' + si(b.sum) + ' → ' + pr(b.premium)];
+    if (pl) L.push('Public Liability: ' + pr(pl.premium));
+    L.push('', '*Total: GHC ' + pr(r.total) + '* (incl. levies & VAT)', 'Valid for 30 days from date of issue.');
+    return L.join('\n');
+  }
+  function openWa(num) {
+    window.open('https://wa.me/233' + num.slice(1) + '?text=' + encodeURIComponent(buildMsg()), '_blank', 'noopener');
+    closeShare();
+  }
+  gid('shareA-yes').addEventListener('click', () => openWa(det.contact));
+  gid('shareA-back').addEventListener('click', () => { closeOv('shareA-overlay'); overlay.classList.add('show'); });
+  gid('shareA-no').addEventListener('click', () => {
+    closeOv('shareA-overlay');
+    gid('s-phone').value = '';
+    gid('shareB-banner').classList.remove('show');
+    openOv('shareB-overlay');
+    gid('s-phone').focus();
+  });
+  gid('shareB-back').addEventListener('click', () => { closeOv('shareB-overlay'); openOv('shareA-overlay'); });
+  gid('shareB-send').addEventListener('click', () => {
+    const v = gid('s-phone').value;
+    const bn = gid('shareB-banner');
+    if (!PHONE_RE.test(v)) {
+      bn.textContent = 'Enter a 10-digit number starting with 0, e.g. 0551234567.';
+      bn.classList.add('show');
+      return;
+    }
+    bn.classList.remove('show');
+    openWa(v);
   });
 </script>
 </body>
