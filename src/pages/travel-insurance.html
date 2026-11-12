@@ -45,7 +45,7 @@ h1{font-family:var(--font-heading);font-size:clamp(32px,5vw,40px);line-height:1.
 .field{display:flex;flex-direction:column;gap:8px;min-width:0}
 .field.full{grid-column:1/-1}
 label,.lbl{font-weight:600;font-size:14px}
-input[type=date],select{font:inherit;color:var(--ink);background:var(--surface-soft);border:1px solid var(--line);border-radius:16px;min-height:48px;padding:8px 16px;width:100%;box-sizing:border-box;transition:border-color 200ms ease-out}
+input[type=date],input[type=tel],select{font:inherit;color:var(--ink);background:var(--surface-soft);border:1px solid var(--line);border-radius:16px;min-height:48px;padding:8px 16px;width:100%;box-sizing:border-box;transition:border-color 200ms ease-out}
 input:focus-visible,select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 input[aria-invalid=true]{border-color:var(--danger)}
 html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85)}
@@ -93,7 +93,23 @@ html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filt
 .enter .plan,.enter .notice{animation:rise 200ms ease-out both;animation-delay:calc(var(--i,0)*40ms)}
 
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
-@media print{.btn{display:none}.plan{box-shadow:none}}
+.pa{display:none}
+.actions{margin-top:auto;display:grid;gap:8px}
+.actions .btn{margin-top:0}
+.btn.sec{background:transparent;color:var(--primary-dark);border:2px solid var(--primary-dark)}
+.btn.sec:hover{background:var(--tint);color:var(--primary-dark)}
+.top-share{margin:0 0 16px}
+.top-share .btn{display:inline-flex}
+.btn.wa{background:var(--success,#16A34A);color:#fff}
+.btn.wa:hover{background:var(--success,#16A34A);filter:brightness(.92)}
+.txt{font:inherit;font-weight:600;background:none;border:0;color:var(--ink-soft);min-height:48px;cursor:pointer}
+.txt:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.pm-ov{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(11,18,32,.55)}
+.pm-ov[hidden]{display:none}
+.pm{width:100%;max-width:420px;display:grid;gap:16px}
+.pm-btns{display:grid;gap:8px;margin-top:8px}
+.pm .btn{margin-top:0}
+@media print{body>*:not(#pa){display:none!important}body{background:#fff!important;padding:16px}#pa{display:block}#pa,#pa *{color:#000!important}.btn{display:none}.plan{box-shadow:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -128,6 +144,28 @@ html[data-theme="dark"] input[type=date]::-webkit-calendar-picker-indicator{filt
 </section>
 <section id="out" aria-live="polite"><p class="hint">Loading rates…</p></section>
 </main>
+<div id="pa" class="pa" aria-hidden="true"></div>
+<div class="pm-ov" id="pm" hidden>
+<div class="card pm" role="dialog" aria-modal="true" aria-labelledby="pm-t">
+<div id="pm-a">
+<h2 class="group-title" id="pm-t">Print/Share Quote</h2>
+<p class="note">Choose how to send this quote.</p>
+<div class="pm-btns">
+<button type="button" class="btn inline" data-pm="print">Print to PDF</button>
+<button type="button" class="btn inline wa" data-pm="share">Share on WhatsApp</button>
+<button type="button" class="txt" data-pm="close">Cancel</button>
+</div>
+</div>
+<div id="pm-b" hidden>
+<h2 class="group-title">Enter Number</h2>
+<div class="field"><label for="phone">WhatsApp number</label><input type="tel" id="phone" inputmode="numeric" maxlength="10" autocomplete="tel" aria-describedby="h-phone e-phone"><span class="note" id="h-phone">10-digit Ghanaian number, starting with 0</span><span class="err" id="e-phone" aria-live="polite"></span></div>
+<div class="pm-btns">
+<button type="button" class="btn inline wa" data-pm="send">Share on WhatsApp</button>
+<button type="button" class="txt" data-pm="back">Back</button>
+</div>
+</div>
+</div>
+</div>
 <script>
 (function(){
 var $=function(i){return document.getElementById(i)};
@@ -136,6 +174,7 @@ var D=null;
 var NOCOVER='No cover for the Age/Destination';
 var ICON='<svg class="ico CLS" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/></svg>';
 var lastSig='';
+var cur=null,sel=null;
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function fmt(n){return n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function parse(s){if(!s)return null;var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
@@ -165,6 +204,7 @@ function fillCountries(){
 }
 function showRate(){$('rate').textContent='Rate = '+D.rate}
 function calc(){
+  cur=null;
   ['e-start','e-end','e-dob'].forEach(function(i){err(i,'')});
   if(!D){render(notice('bad','Rates could not be loaded. Please refresh the page or try again later.','Refresh page','reload'));return}
   var s=parse($('start').value),e=parse($('end').value),b=parse($('dob').value),c=$('country').value;
@@ -176,18 +216,20 @@ function calc(){
   if(b&&b>today){err('e-dob','Date of birth cannot be in the future.');bad=true}
   else if(b&&s&&b>s){err('e-dob','Date of birth must be before the start date.');bad=true}
   if(bad){render('');return}
+  var days=(s&&e)?Math.round((e-s)/864e5)+1:null;
+  var age=null;
+  if(s&&b){age=s.getFullYear()-b.getFullYear();if(s.getMonth()<b.getMonth()||(s.getMonth()===b.getMonth()&&s.getDate()<b.getDate()))age--}
   if(!s||!e||!b||!c){
-    var need=[];
+    var need=[],pre=[];
     if(!s)need.push('trip start date');
     if(!e)need.push('trip end date');
     if(!b)need.push('date of birth');
     if(!c)need.push('destination country');
-    render('<p class="hint">Still needed to show your plans: '+need.join(', ')+'.</p>');
+    if(days!=null)pre.push('<b>'+days+'</b> day'+(days===1?'':'s'));
+    if(age!=null)pre.push('age <b>'+age+'</b>');
+    render((pre.length?'<p class="summary">'+pre.join(', ')+'.</p>':'')+'<p class="hint">Still needed to show your plans: '+need.join(', ')+'.</p>');
     return;
   }
-  var days=Math.round((e-s)/864e5)+1;
-  var age=s.getFullYear()-b.getFullYear();
-  if(s.getMonth()<b.getMonth()||(s.getMonth()===b.getMonth()&&s.getDate()<b.getDate()))age--;
   var zone=D.schengen.indexOf(c)>-1?'schengen':'worldwide';
   var study=document.querySelector('input[name=study]:checked').value==='yes';
   var plans=[];
@@ -204,17 +246,53 @@ function calc(){
     }
   }
   var head='<p class="summary"><b>'+days+'</b> day'+(days===1?'':'s')+', age <b>'+age+'</b>, going to <b>'+esc(c)+'</b> ('+(zone==='schengen'?'Schengen':'Worldwide')+' cover).</p>';
-  if(!plans.length){render(head+notice('bad',NOCOVER,'Change destination','country'));return}
-  render(head+'<div class="plans">'+plans.map(function(p,i){
+  cur={c:c,days:days,age:age,plans:plans.map(function(p){return{name:p.name,ghs:p.usd*D.rate,warn:p.warn}})};
+  if(!plans.length){cur=null;render(head+notice('bad',NOCOVER,'Change destination','country'));return}
+  render(head+(plans.length>1?'<div class="top-share"><button type="button" class="btn inline sec" data-act="share" data-i="all">Print/Share Quote (all plans)</button></div>':'')+'<div class="plans">'+plans.map(function(p,i){
     var ghs=p.usd*D.rate;
     var msg='I want to purchase travel insurance. Details: Plan: '+p.name+'; Price: GHS '+fmt(ghs)+'; Days: '+days+'; Age: '+age+'; Destination: '+c+(p.warn?'; Warning: '+p.warn:'');
     return'<article class="card plan" style="--i:'+i+'"><h3>'+esc(p.name)+'</h3><div class="price">GHS '+fmt(ghs)+'</div><div class="note">'+esc(p.note)+'</div>'
       +(p.warn?'<div class="inline-note">'+ICON.replace('CLS','warn')+'<span>'+esc(p.warn.charAt(0).toUpperCase()+p.warn.slice(1))+'</span></div>':'')
       +'<div class="usd">USD '+fmt(p.usd)+' at rate '+D.rate+'</div>'
-      +'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+D.whatsapp+'?text='+encodeURIComponent(msg)+'"><span class="lbl-t">Request this Quote</span><span class="sr"> (opens WhatsApp in a new tab)</span></a></article>';
+      +'<div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+D.whatsapp+'?text='+encodeURIComponent(msg)+'"><span class="lbl-t">Request this Quote</span><span class="sr"> (opens WhatsApp in a new tab)</span></a><button type="button" class="btn sec" data-act="share" data-i="'+i+'">Print/Share Quote</button></div></article>';
   }).join('')+'</div>');
 }
 function refresh(){var old=JSON.stringify(D);load().then(function(ok){if(ok&&JSON.stringify(D)!==old){showRate();fillCountries();calc()}})}
+
+// Print/Share: one function validates, fills the print area, then prints or starts the share flow
+function cap(x){return x.charAt(0).toUpperCase()+x.slice(1)}
+function pick(){return sel==='all'?cur.plans:[cur.plans[+sel]]}
+function dtxt(){return cur.days+' day'+(cur.days===1?'':'s')}
+function msg(){
+  var l=['*Travel insurance quote*','Destination: '+cur.c+', '+dtxt()+', age '+cur.age,''];
+  pick().forEach(function(p){l.push(p.name+': *GHS '+fmt(p.ghs)+'*');if(p.warn)l.push('\u26A0 '+cap(p.warn))});
+  return l.join('\n');
+}
+function showPm(w){$('pm').hidden=false;$('pm-a').hidden=w!=='a';$('pm-b').hidden=w!=='b';if(w==='b'){err('e-phone','');$('phone').focus()}}
+function closePm(){$('pm').hidden=true}
+function processDetails(mode){
+  if(!cur||!pick()[0])return;
+  $('pa').innerHTML='<h1>Travel insurance quote</h1><p>Destination: '+esc(cur.c)+', '+dtxt()+', age '+cur.age+'</p>'+pick().map(function(p){return'<h2>'+esc(p.name)+'</h2><p><b>GHS '+fmt(p.ghs)+'</b></p>'+(p.warn?'<p>Warning: '+esc(cap(p.warn))+'</p>':'')}).join('');
+  if(mode==='print'){closePm();window.print()}else showPm('b');
+}
+function send(){
+  var v=$('phone').value;
+  if(!/^0\d{9}$/.test(v)){err('e-phone','Enter a 10-digit number starting with 0, e.g. 0551234567.');return}
+  err('e-phone','');
+  window.open('https://wa.me/233'+v.slice(1)+'?text='+encodeURIComponent(msg()),'_blank','noopener');
+  closePm();
+}
+$('phone').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,10)});
+$('pm').addEventListener('click',function(ev){
+  if(ev.target===$('pm'))return closePm();
+  var b=ev.target.closest('[data-pm]');if(!b)return;
+  var k=b.dataset.pm;
+  if(k==='print'||k==='share')processDetails(k);
+  else if(k==='send')send();
+  else if(k==='back')showPm('a');
+  else closePm();
+});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!$('pm').hidden)closePm()});
 
 // Actions inside results: notice buttons, and in-place confirmation for the quote button
 $('out').addEventListener('click',function(ev){
@@ -222,6 +300,7 @@ $('out').addEventListener('click',function(ev){
   if(a){
     if(a.dataset.act==='reload')location.reload();
     if(a.dataset.act==='country')$('country').focus();
+    if(a.dataset.act==='share'&&cur){sel=a.dataset.i;showPm('a')}
     return;
   }
   var q=ev.target.closest('a.btn');
