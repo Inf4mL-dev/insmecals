@@ -234,6 +234,10 @@
   .modal .input-row input{font-size:16px;padding:13px 14px;}
   .modal-actions{display:flex;gap:10px;margin-top:22px;}
 
+  .btn-wa{background:var(--success);color:#fff;box-shadow:0 8px 18px -8px rgba(0,0,0,.25);}
+  .btn-wa:hover{filter:brightness(.92);transform:translateY(-1px);}
+  .modal-actions.stack{flex-direction:column;}
+
   /* Print area */
   #print-area{display:none;}
   @media print{
@@ -393,7 +397,7 @@
       <div class="meta-row"><span>Cover period</span><span class="v">1 Year</span></div>
 
       <div class="view-actions">
-        <button class="btn btn-primary btn-block" type="button" onclick="openModal()">Print quote</button>
+        <button class="btn btn-primary btn-block" type="button" onclick="openModal()">Print/Share Quote</button>
         <button class="btn btn-text" type="button" onclick="goTo('input-view')">← Back to calculator</button>
       </div>
     </div>
@@ -413,8 +417,9 @@
     </div>
     <div class="field">
       <label for="mContact">Contact</label>
-      <div class="input-row"><input id="mContact" type="text" inputmode="tel" placeholder="0XX XXX XXXX"></div>
+      <div class="input-row"><input id="mContact" type="tel" inputmode="numeric" maxlength="10" placeholder="0551234567" autocomplete="tel"></div>
       <div class="hint">10-digit Ghanaian number, starting with 0</div>
+      <div id="mContact-err" class="banner error" role="alert" style="margin-top:8px"></div>
     </div>
     <div class="field">
       <label for="mLocation">Business location</label>
@@ -427,9 +432,40 @@
 
     <div id="modal-banner" class="banner error" role="alert"></div>
 
+    <div class="modal-actions stack">
+      <button class="btn btn-primary" type="button" onclick="processDetails('print')">Print to PDF</button>
+      <button class="btn btn-wa" type="button" onclick="processDetails('share')">Share on WhatsApp</button>
+      <button class="btn btn-text" type="button" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE: STEP A -->
+<div class="modal-overlay" id="shareA-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareA-title">
+    <h3 id="shareA-title">Share to Insured number?</h3>
+    <p class="desc"><b id="sAContact"></b></p>
     <div class="modal-actions">
-      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" style="flex:1.6" onclick="generateAndPrint()">Generate &amp; print</button>
+      <button class="btn btn-ghost" style="flex:1" type="button" onclick="shareNo()">No</button>
+      <button class="btn btn-primary" style="flex:1" type="button" onclick="shareYes()">Yes</button>
+    </div>
+    <div style="text-align:center;margin-top:8px"><button class="btn btn-text" type="button" onclick="shareBack()">Back</button></div>
+  </div>
+</div>
+
+<!-- SHARE: ENTER NUMBER -->
+<div class="modal-overlay" id="shareB-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shareB-title">
+    <h3 id="shareB-title">Enter Number</h3>
+    <div class="field">
+      <label for="sPhone">WhatsApp number</label>
+      <div class="input-row"><input id="sPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="0551234567" autocomplete="tel"></div>
+      <div class="hint">10-digit Ghanaian number, starting with 0</div>
+      <div id="sPhone-err" class="banner error" role="alert" style="margin-top:8px"></div>
+    </div>
+    <div class="modal-actions stack">
+      <button class="btn btn-wa" type="button" onclick="shareSend()">Share on WhatsApp</button>
+      <button class="btn btn-text" type="button" onclick="shareBBack()">Back</button>
     </div>
   </div>
 </div>
@@ -672,43 +708,105 @@
   function closeModal(){
     document.getElementById('modal-overlay').classList.remove('show');
     document.getElementById('modal-banner').classList.remove('show');
+    document.getElementById('mContact-err').classList.remove('show');
   }
   document.getElementById('modal-overlay').addEventListener('click', (e) => {
     if (e.target.id === 'modal-overlay') closeModal();
   });
 
-  function generateAndPrint(){
-    const name = document.getElementById('mName').value.trim();
-    const contact = document.getElementById('mContact').value.trim();
-    const location = document.getElementById('mLocation').value.trim();
-    const code = document.getElementById('mCode').value.trim();
+  const PHONE_RE = /^0\d{9}$/;
+  let det = null;
+  const $ = id => document.getElementById(id);
+  function onlyDigits(el){ el.addEventListener('input', () => { el.value = el.value.replace(/\D/g,'').slice(0,10); }); }
+  onlyDigits($('mContact')); onlyDigits($('sPhone'));
+  function showErr(id, msg){ const b = $(id); b.textContent = msg; b.classList.toggle('show', !!msg); }
+  function openOv(id){ $(id).classList.add('show'); }
+  function closeOv(id){ $(id).classList.remove('show'); }
+  function closeShare(){ closeOv('shareA-overlay'); closeOv('shareB-overlay'); }
+  ['shareA-overlay','shareB-overlay'].forEach(id => $(id).addEventListener('click', (e) => { if (e.target.id === id) closeShare(); }));
+
+  // One function validates, fills the print area, then prints or starts the share flow
+  function processDetails(mode){
+    const name = $('mName').value.trim();
+    const contact = $('mContact').value.trim();
+    const location = $('mLocation').value.trim();
+    const code = $('mCode').value.trim();
 
     if(!name || !contact || !location){
-      const b = document.getElementById('modal-banner');
-      b.textContent = 'Please fill in Insured Name, Contact, and Business Location.';
-      b.classList.add('show');
+      showErr('modal-banner', 'Please fill in Insured Name, Contact, and Business Location.');
       return;
     }
+    showErr('modal-banner', '');
+    if(!PHONE_RE.test(contact)){
+      showErr('mContact-err', 'Contact must be a 10-digit Ghanaian number starting with 0, e.g. 0551234567.');
+      return;
+    }
+    showErr('mContact-err', '');
 
     const ref = 'AP-' + Date.now().toString().slice(-8);
     const today = new Date();
     const dateStr = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 
-    document.getElementById('qReference').textContent = 'Reference: ' + ref;
-    document.getElementById('qMeta').textContent = 'Issue Date: ' + dateStr;
-    document.getElementById('qName').textContent = name;
-    document.getElementById('qContact').textContent = contact;
-    document.getElementById('qLocation').textContent = location;
-    document.getElementById('qCode').textContent = code || '—';
+    $('qReference').textContent = 'Reference: ' + ref;
+    $('qMeta').textContent = 'Issue Date: ' + dateStr;
+    $('qName').textContent = name;
+    $('qContact').textContent = contact;
+    $('qLocation').textContent = location;
+    $('qCode').textContent = code || '—';
 
-    document.getElementById('qSiFire').textContent = fmt(lastResult.sumInsuredFire);
-    document.getElementById('qSiBurglary').textContent = fmt(lastResult.sumInsuredBurglary);
-    document.getElementById('qPremFire').textContent = fmt(lastResult.firePremium);
-    document.getElementById('qPremBurglary').textContent = fmt(lastResult.burglaryPremium);
-    document.getElementById('qTotal').textContent = fmt(lastResult.fullPremium);
+    $('qSiFire').textContent = fmt(lastResult.sumInsuredFire);
+    $('qSiBurglary').textContent = fmt(lastResult.sumInsuredBurglary);
+    $('qPremFire').textContent = fmt(lastResult.firePremium);
+    $('qPremBurglary').textContent = fmt(lastResult.burglaryPremium);
+    $('qTotal').textContent = fmt(lastResult.fullPremium);
 
+    det = { name, contact, location, code };
     closeModal();
-    setTimeout(()=>window.print(), 150);
+    if(mode === 'print'){
+      setTimeout(()=>window.print(), 150);
+    } else {
+      $('sAContact').textContent = contact;
+      openOv('shareA-overlay');
+    }
+  }
+
+  // ---------- Share flow ----------
+  function buildMsg(){
+    const r = lastResult, rk = r.riskLabel.replace(' Risk','');
+    const si = n => n.toLocaleString('en-GH', { maximumFractionDigits: 2 });
+    const lines = ['*Ahoto Pii quote*', det.name + ', ' + det.location];
+    if(det.code) lines.push('Agent: ' + det.code);
+    lines.push(
+      '', 'Sum insured → premium (GHS)',
+      'Fire (' + rk + '): ' + si(r.sumInsuredFire) + ' → ' + fmt(r.firePremium),
+      'Burglary (' + rk + '): ' + si(r.sumInsuredBurglary) + ' → ' + fmt(r.burglaryPremium),
+      '', '*Total: GHS ' + fmt(r.fullPremium) + '* (1 year)',
+      'Valid for 30 days.'
+    );
+    return lines.join('\n');
+  }
+  function openWa(num){
+    window.open('https://wa.me/233' + num.slice(1) + '?text=' + encodeURIComponent(buildMsg()), '_blank', 'noopener');
+    closeShare();
+  }
+  function shareYes(){ openWa(det.contact); }
+  function shareBack(){ closeOv('shareA-overlay'); openModal(); }
+  function shareNo(){
+    closeOv('shareA-overlay');
+    $('sPhone').value = '';
+    showErr('sPhone-err', '');
+    openOv('shareB-overlay');
+    $('sPhone').focus();
+  }
+  function shareBBack(){ closeOv('shareB-overlay'); openOv('shareA-overlay'); }
+  function shareSend(){
+    const v = $('sPhone').value;
+    if(!PHONE_RE.test(v)){
+      showErr('sPhone-err', 'Enter a 10-digit number starting with 0, e.g. 0551234567.');
+      return;
+    }
+    showErr('sPhone-err', '');
+    openWa(v);
   }
 
   refresh();
