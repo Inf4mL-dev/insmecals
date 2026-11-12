@@ -148,7 +148,7 @@
   }
   .field-hint{ font-size:12px; color:var(--muted); margin:7px 0 0; line-height:1.5; }
 
-  input[type="text"], input[type="password"], select{
+  input[type="text"], input[type="password"], input[type="tel"], select{
     width:100%;
     min-height:50px;
     padding:11px 14px;
@@ -160,7 +160,7 @@
     background:var(--surface-soft);
     transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
   }
-  input[type="text"]:focus, input[type="password"]:focus, select:focus{
+  input[type="text"]:focus, input[type="password"]:focus, input[type="tel"]:focus, select:focus{
     outline:none;
     border-color:var(--blue);
     box-shadow:0 0 0 3px color-mix(in srgb, var(--blue) 16%, transparent);
@@ -471,7 +471,7 @@
     flex-shrink:0;
   }
   .modal-box label.field-label{ text-align:left; }
-  .modal-box input[type="text"]{ margin-bottom:14px; }
+  .modal-box input[type="text"], .modal-box input[type="tel"]{ margin-bottom:14px; }
   .modal-error{ display:none; color:var(--danger); font-size:12.5px; margin:-6px 0 12px; text-align:left; }
 
   @media (max-width:420px){
@@ -482,6 +482,10 @@
   @media (prefers-reduced-motion:reduce){
     *{ transition:none !important; animation:none !important; }
   }
+
+  .calc-btn.wa-btn{ background:var(--success); color:#fff; margin-top:10px; }
+  .calc-btn.wa-btn:hover:not(:disabled){ background:var(--success); filter:brightness(.92); }
+  .modal-box .field-hint{ text-align:left; margin:-8px 0 12px; }
 
   /* ---------- Print / PDF layout ---------- */
   #printQuote{ display:none; }
@@ -748,7 +752,7 @@
 
     <button class="calc-btn" id="downloadBtn" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Download quote (PDF)
+      Print/Share Quote
     </button>
     <button class="text-btn" id="backBtn" type="button">&larr; Back to calculator</button>
   </div>
@@ -771,17 +775,29 @@
 <div class="modal-overlay" id="custOverlay">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="custTitle">
     <h3 id="custTitle">Customer details</h3>
-    <p class="modal-sub">Enter these to generate the quote document</p>
+    <p class="modal-sub">Enter the name to print or share the quote</p>
     <div>
       <label class="field-label" for="custName">Name</label>
       <input type="text" id="custName" placeholder="e.g. Kwame Mensah">
-      <label class="field-label" for="custAddress">Address</label>
-      <input type="text" id="custAddress" placeholder="e.g. East Legon, Accra">
-      <label class="field-label" for="custContact">Contact</label>
-      <input type="text" id="custContact" inputmode="tel" placeholder="e.g. 024 123 4567">
-      <p class="modal-error" id="custErrorMsg">Please fill in all three fields.</p>
+      <p class="modal-error" id="custErrorMsg">Please enter the customer name.</p>
     </div>
-    <button class="calc-btn" id="custConfirm" type="button">Generate quote PDF</button>
+    <button class="calc-btn" id="custConfirm" type="button">Print to PDF</button>
+    <button class="calc-btn wa-btn" id="custShare" type="button">Share on WhatsApp</button>
+    <button class="text-btn" id="custCancel" type="button">Cancel</button>
+  </div>
+</div>
+
+<!-- SHARE: ENTER NUMBER POPUP -->
+<div class="modal-overlay" id="shareOverlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <h3 id="shareTitle">Enter Number</h3>
+    <p class="modal-sub">Which WhatsApp number should receive the quote?</p>
+    <label class="field-label" for="sharePhone">WhatsApp number</label>
+    <input type="tel" id="sharePhone" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="e.g. 0551234567">
+    <p class="field-hint">10-digit Ghanaian number, starting with 0</p>
+    <p class="modal-error" id="shareErr">Enter a 10-digit number starting with 0, e.g. 0551234567.</p>
+    <button class="calc-btn wa-btn" id="shareSend" type="button">Share on WhatsApp</button>
+    <button class="text-btn" id="shareBack" type="button">Back</button>
   </div>
 </div>
 
@@ -817,8 +833,8 @@
 
     <div class="print-meta-grid">
       <div><strong>Customer Name:</strong> <span id="pName"></span></div>
-      <div><strong>Contact:</strong> <span id="pContact"></span></div>
-      <div><strong>Address:</strong> <span id="pAddress"></span></div>
+      
+      
       <div><strong>Tracking ID:</strong> <span id="pTrackId"></span></div>
       <div><strong>Quote Date:</strong> <span id="pQuoteDate"></span></div>
       <div><strong>Policy Start Date:</strong> <span id="pStart"></span></div>
@@ -1580,15 +1596,15 @@ const EV_TERMS_SUMMARY = [
   "Otherwise subject to the terms, conditions and exceptions of our Motor Comprehensive Insurance Policy."
 ];
 
-document.getElementById('custConfirm').addEventListener('click', ()=>{
+let custNameVal = '';
+function processDetails(mode){
   const name = document.getElementById('custName').value.trim();
-  const address = document.getElementById('custAddress').value.trim();
-  const contact = document.getElementById('custContact').value.trim();
 
-  if(!name || !address || !contact){
+  if(!name){
     document.getElementById('custErrorMsg').style.display = 'block';
     return;
   }
+  document.getElementById('custErrorMsg').style.display = 'none';
 
   const q = window.lastQuote;
   if(!q) return;
@@ -1600,8 +1616,6 @@ document.getElementById('custConfirm').addEventListener('click', ()=>{
 
   document.getElementById('pRef').textContent = "Q" + randDigits(5);
   document.getElementById('pName').textContent = name;
-  document.getElementById('pAddress').textContent = address;
-  document.getElementById('pContact').textContent = contact;
   document.getElementById('pTrackId').textContent = randDigits(10);
   document.getElementById('pQuoteDate').textContent = fmtDate(today);
   document.getElementById('pStart').textContent = fmtDate(today);
@@ -1647,8 +1661,53 @@ document.getElementById('custConfirm').addEventListener('click', ()=>{
     `;
   }
 
+  custNameVal = name;
   custOverlay.classList.remove('show');
-  setTimeout(()=> window.print(), 150);
+  if(mode === 'print'){
+    setTimeout(()=> window.print(), 150);
+  } else {
+    openShare();
+  }
+}
+
+// ---------- Share on WhatsApp ----------
+const shareOverlay = $('shareOverlay');
+const sharePhone = $('sharePhone');
+const shareErr = $('shareErr');
+const PHONE_RE = /^0\d{9}$/;
+sharePhone.addEventListener('input', ()=>{ sharePhone.value = sharePhone.value.replace(/\D/g,'').slice(0,10); });
+function openShare(){
+  sharePhone.value = '';
+  shareErr.style.display = 'none';
+  shareOverlay.classList.add('show');
+  setTimeout(()=> sharePhone.focus(), 50);
+}
+$('custConfirm').addEventListener('click', ()=> processDetails('print'));
+$('custShare').addEventListener('click', ()=> processDetails('share'));
+$('custCancel').addEventListener('click', ()=> custOverlay.classList.remove('show'));
+shareOverlay.addEventListener('click', (e)=>{ if(e.target === shareOverlay) shareOverlay.classList.remove('show'); });
+$('shareBack').addEventListener('click', ()=>{ shareOverlay.classList.remove('show'); custOverlay.classList.add('show'); });
+
+function buildMsg(){
+  const q = window.lastQuote;
+  const SHORT = { "Third Party":"Third Party", "Third Party Amplified":"TP Amplified", "Third Party Fire & Theft":"Fire & Theft", "Comprehensive":"Comprehensive" };
+  const cv = SHORT[q.coverLabel] || q.coverLabel;
+  const si = n => n.toLocaleString('en-GH', { maximumFractionDigits: 2 });
+  const L = ['*Motor quote*', custNameVal, q.vtName + ', ' + q.engine + ', ' + q.seats + (q.seats === 1 ? ' seat' : ' seats') + ', TPPDL ' + si(q.tppdl), ''];
+  if(q.showSI){
+    L.push('Sum insured → premium (GHC)');
+    q.packageRows.forEach(r => L.push(cv + ' (' + r.desc.match(/^\d+%/)[0] + '): ' + si(q.SI) + ' → *' + fmt(r.amount) + '*'));
+  } else {
+    L.push('*Total: GHC ' + fmt(q.packageRows[0].amount) + '* (' + cv + ')');
+  }
+  return L.join('\n');
+}
+$('shareSend').addEventListener('click', ()=>{
+  const v = sharePhone.value;
+  if(!PHONE_RE.test(v)){ shareErr.style.display = 'block'; return; }
+  shareErr.style.display = 'none';
+  window.open('https://wa.me/233' + v.slice(1) + '?text=' + encodeURIComponent(buildMsg()), '_blank', 'noopener');
+  shareOverlay.classList.remove('show');
 });
 </script>
 </body>
